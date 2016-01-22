@@ -1,5 +1,7 @@
 # FeMo.IO HTTP Library
 
+[![Build Status](https://travis-ci.org/femoio/http.svg?branch=master)](https://travis-ci.org/femoio/http)
+
 This library provides a simple API for developers to perform synchronous and asynchronous HTTP Requests.
  
 HTTP Versions supported:
