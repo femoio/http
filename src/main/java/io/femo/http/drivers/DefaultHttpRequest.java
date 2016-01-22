@@ -1,11 +1,9 @@
 package io.femo.http.drivers;
 
 import io.femo.http.*;
-import org.apache.commons.lang3.StringEscapeUtils;
-import sun.awt.CharsetString;
 
+import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
@@ -73,7 +71,7 @@ public class DefaultHttpRequest extends HttpRequest {
     @Override
     public HttpRequest basicAuth(String username, String password) {
         String auth = username + ":" + password;
-        header("Authorization", Base64.getEncoder().encodeToString(auth.getBytes()));
+        header("Authorization", DatatypeConverter.printBase64Binary(auth.getBytes()));
         return this;
     }
 
