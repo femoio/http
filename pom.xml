@@ -7,6 +7,7 @@
     <groupId>io.femo</groupId>
     <artifactId>http</artifactId>
     <version>0.0.1</version>
+    <packaging>jar</packaging>
 
     <name>FeMoIO Http</name>
     <description>
@@ -14,6 +15,13 @@
 
         On android only asynchronous driver is supported.
     </description>
+    <url>http://femo.io/libs/http</url>
+
+    <scm>
+        <connection>scm:git@github.com:femoio/http.git</connection>
+        <developerConnection>scm:git@github.com:femoio/http.git</developerConnection>
+        <url>https://github.com/femoio/http</url>
+    </scm>
 
     <developers>
         <developer>
@@ -31,18 +39,95 @@
         <license>
             <name>MIT License</name>
             <distribution>manual</distribution>
-            <url>https://opensource.org/licenses/MIT</url>
+            <url>https://raw.githubusercontent.com/femoio/http/master/LICENSE</url>
         </license>
     </licenses>
 
     <build>
         <plugins>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.3</version>
                 <configuration>
                     <source>1.7</source>
                     <target>1.7</target>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.10.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.4</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.6</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>1.4</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <keyname>BB42FB21</keyname>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+                <version>3.4</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.wagon</groupId>
+                        <artifactId>wagon-ftp</artifactId>
+                        <version>2.10</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.apache.velocity</groupId>
+                        <artifactId>velocity</artifactId>
+                        <version>1.7</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>lt.velykis.maven.skins</groupId>
+                        <artifactId>reflow-velocity-tools</artifactId>
+                        <version>1.1.1</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>2.8.1</version>
             </plugin>
         </plugins>
     </build>
@@ -65,5 +150,13 @@
             <version>3.3.2</version>
         </dependency>
     </dependencies>
+
+    <distributionManagement>
+        <site>
+            <id>femoio-ftpserver</id>
+            <name>FeMo.IO FTP Server</name>
+            <url>ftp://alfa3026.alfahosting-server.de/html/femoio/libs/http/</url>
+        </site>
+    </distributionManagement>
 
 </project>

@@ -71,7 +71,7 @@ public class DefaultHttpRequest extends HttpRequest {
     @Override
     public HttpRequest basicAuth(String username, String password) {
         String auth = username + ":" + password;
-        header("Authorization", DatatypeConverter.printBase64Binary(auth.getBytes()));
+        header("Authorization", "Basic " + DatatypeConverter.printBase64Binary(auth.getBytes()));
         return this;
     }
 

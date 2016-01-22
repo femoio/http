@@ -91,4 +91,11 @@ public class HttpTest {
         assertNotNull("Cookies", cookie);
         assertEquals("Cookie Value", "abcd1234", cookie.getAsString());
     }
+
+    @Test
+    public void testBasicAuthentication() throws Exception {
+        HttpResponse response = Http.get("http://httpbin.org/basic-auth/test/test").basicAuth("test", "test").response();
+        assertNotNull(response);
+        assertEquals("Status", 200, response.statusCode());
+    }
 }
