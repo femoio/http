@@ -25,51 +25,51 @@ public class Http {
     }
 
     public static HttpRequest get(URL url) {
-        return driver.url(url).method("GET");
+        return url(url).method("GET");
     }
 
     public static HttpRequest post(URL url) {
-        return driver.url(url).method("POST");
+        return url(url).method("POST");
     }
 
     public static HttpRequest put(URL url) {
-        return driver.url(url).method("PUT");
+        return url(url).method("PUT");
     }
 
     public static HttpRequest update(URL url) {
-        return driver.url(url).method("UPDATE");
+        return url(url).method("UPDATE");
     }
 
     public static HttpRequest delete(URL url) {
-        return driver.url(url).method("DELETE");
+        return url(url).method("DELETE");
     }
 
     public static HttpRequest patch(URL url) {
-        return driver.url(url).method("PATCH");
+        return url(url).method("PATCH");
     }
 
-    public static HttpRequest get(String url) {
-        return driver.url(url).method("GET");
+    public static HttpRequest get(String url) throws MalformedURLException {
+        return url(url).method("GET");
     }
 
-    public static HttpRequest post(String url) {
-        return driver.url(url).method("POST");
+    public static HttpRequest post(String url) throws MalformedURLException {
+        return url(url).method("POST");
     }
 
-    public static HttpRequest put(String url) {
-        return driver.url(url).method("PUT");
+    public static HttpRequest put(String url) throws MalformedURLException {
+        return url(url).method("PUT");
     }
 
-    public static HttpRequest update(String url) {
-        return driver.url(url).method("UPDATE");
+    public static HttpRequest update(String url) throws MalformedURLException {
+        return url(url).method("UPDATE");
     }
 
-    public static HttpRequest delete(String url) {
-        return driver.url(url).method("DELETE");
+    public static HttpRequest delete(String url) throws MalformedURLException {
+        return url(url).method("DELETE");
     }
 
-    public static HttpRequest patch(String url) {
-        return driver.url(url).method("PATCH");
+    public static HttpRequest patch(String url) throws MalformedURLException {
+        return url(url).method("PATCH");
     }
 
 }

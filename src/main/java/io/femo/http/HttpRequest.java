@@ -38,4 +38,8 @@ public abstract class HttpRequest {
     public HttpRequest contentType(String contentType) {
         return header("Content-Type", contentType);
     }
+
+    public HttpRequest https() {
+        return transport(Transport.HTTPS);
+    }
 }

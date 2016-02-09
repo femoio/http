@@ -81,7 +81,7 @@ public class DefaultHttpRequest extends HttpRequest {
         int port = url.getPort() == -1 ? url.getDefaultPort() : url.getPort();
         DefaultHttpResponse response;
         try {
-            Socket socket = new Socket(url.getHost(), port);
+            Socket socket = transport.openSocket(url.getHost(), port);
             PrintStream output = new PrintStream(socket.getOutputStream());
             print(output);
             response = DefaultHttpResponse.read(socket.getInputStream());
@@ -97,6 +97,7 @@ public class DefaultHttpRequest extends HttpRequest {
 
     @Override
     public HttpRequest transport(Transport transport) {
+        this.transport = transport;
         return this;
     }
 
