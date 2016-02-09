@@ -1,6 +1,5 @@
 package io.femo.http.drivers;
 
-import com.sun.xml.internal.ws.api.streaming.XMLStreamReaderFactory;
 import io.femo.http.HttpException;
 import io.femo.http.HttpRequest;
 import io.femo.http.HttpResponseCallback;
