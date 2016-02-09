@@ -32,17 +32,13 @@ public class AsynchronousHttpRequest extends DefaultHttpRequest {
             public void run() {
                 int port = url.getPort() == -1 ? url.getDefaultPort() : url.getPort();
                 DefaultHttpResponse response = null;
-                if(transport() == Transport.HTTP) {
-                    try {
-                        Socket socket = new Socket(url.getHost(), port);
-                        PrintStream printStream = new PrintStream(socket.getOutputStream());
-                        print(printStream);
-                        response = DefaultHttpResponse.read(socket.getInputStream());
-                    } catch (IOException e) {
-                        throw new HttpException(AsynchronousHttpRequest.this, e);
-                    }
-                } else {
-                    //TODO with Transport.openSocket();
+                try {
+                    Socket socket = transport().openSocket(url.getHost(), port);
+                    PrintStream printStream = new PrintStream(socket.getOutputStream());
+                    print(printStream);
+                    response = DefaultHttpResponse.read(socket.getInputStream());
+                } catch (IOException e) {
+                    throw new HttpException(AsynchronousHttpRequest.this, e);
                 }
                 if(callback != null)
                     callback.receivedResponse(response);
