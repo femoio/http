@@ -27,23 +27,26 @@ public class AsynchronousHttpRequest extends DefaultHttpRequest {
     }
 
     protected Runnable getRunnable(final HttpResponseCallback callback) {
-        return () -> {
-            int port = url.getPort() == -1 ? url.getDefaultPort() : url.getPort();
-            DefaultHttpResponse response = null;
-            if(transport() == Transport.HTTP) {
-                try {
-                    Socket socket = new Socket(url.getHost(), port);
-                    PrintStream printStream = new PrintStream(socket.getOutputStream());
-                    print(printStream);
-                    response = DefaultHttpResponse.read(socket.getInputStream());
-                } catch (IOException e) {
-                    throw new HttpException(AsynchronousHttpRequest.this, e);
+        return new Runnable() {
+            @Override
+            public void run() {
+                int port = url.getPort() == -1 ? url.getDefaultPort() : url.getPort();
+                DefaultHttpResponse response = null;
+                if(transport() == Transport.HTTP) {
+                    try {
+                        Socket socket = new Socket(url.getHost(), port);
+                        PrintStream printStream = new PrintStream(socket.getOutputStream());
+                        print(printStream);
+                        response = DefaultHttpResponse.read(socket.getInputStream());
+                    } catch (IOException e) {
+                        throw new HttpException(AsynchronousHttpRequest.this, e);
+                    }
+                } else {
+                    //TODO with Transport.openSocket();
                 }
-            } else {
-                //TODO with Transport.openSocket();
+                if(callback != null)
+                    callback.receivedResponse(response);
             }
-            if(callback != null)
-                callback.receivedResponse(response);
         };
     }
 }
