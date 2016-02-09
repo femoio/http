@@ -20,9 +20,10 @@ public class DefaultHttpRequest extends HttpRequest {
     private Map<String, HttpCookie> cookies;
     private Map<String, HttpHeader> headers;
     private byte[] entity;
-    private URL url;
+    protected URL url;
     private HttpResponse response;
     private Map<String, byte[]> data;
+    private Transport transport = Transport.HTTP;
 
     public DefaultHttpRequest(URL url) {
         this.url = url;
@@ -208,6 +209,11 @@ public class DefaultHttpRequest extends HttpRequest {
         if(response == null)
                 execute();
         return response;
+    }
+
+    @Override
+    public Transport transport() {
+        return transport;
     }
 
     protected void response(HttpResponse response) {

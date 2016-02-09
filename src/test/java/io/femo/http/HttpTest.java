@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import io.femo.http.drivers.DefaultDriver;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -21,6 +22,7 @@ public class HttpTest {
     @Before
     public void setUp() throws Exception {
         parser = new JsonParser();
+        Http.installDriver(new DefaultDriver());
     }
 
     @Test

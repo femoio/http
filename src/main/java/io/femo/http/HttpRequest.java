@@ -29,6 +29,8 @@ public abstract class HttpRequest {
     public abstract boolean checkAuth(String username, String password);
     public abstract HttpResponse response();
 
+    public abstract Transport transport();
+
     public HttpRequest execute() {
         return execute(null);
     }
