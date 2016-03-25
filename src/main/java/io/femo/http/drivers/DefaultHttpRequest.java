@@ -1,6 +1,7 @@
 package io.femo.http.drivers;
 
 import io.femo.http.*;
+import io.femo.http.events.*;
 
 import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
@@ -10,6 +11,7 @@ import java.net.Socket;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.*;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Created by felix on 9/11/15.
@@ -24,6 +26,7 @@ public class DefaultHttpRequest extends HttpRequest {
     private HttpResponse response;
     private Map<String, byte[]> data;
     private Transport transport = Transport.HTTP;
+    protected HttpEventManager manager;
 
     public DefaultHttpRequest(URL url) {
         this.url = url;
@@ -32,6 +35,7 @@ public class DefaultHttpRequest extends HttpRequest {
         header("Connection", "close");
         header("User-Agent", "FeMoIO HTTP/0.1");
         header("Host", url.getHost());
+        manager = new HttpEventManager();
     }
 
     @Override
@@ -84,13 +88,26 @@ public class DefaultHttpRequest extends HttpRequest {
             Socket socket = transport.openSocket(url.getHost(), port);
             PrintStream output = new PrintStream(socket.getOutputStream());
             print(output);
+            manager.raise(new HttpSentEvent(this));
             response = DefaultHttpResponse.read(socket.getInputStream());
+            manager.raise(new HttpReceivedEvent(this, response));
             socket.close();
         } catch (IOException e) {
+            manager.raise(new HttpEvent(HttpEventType.ERRORED) {
+            });
             throw new HttpException(this, e);
         }
-        if(callback != null)
-            callback.receivedResponse(response);
+        boolean handled = false;
+        if(callback != null) {
+            try {
+                callback.receivedResponse(response);
+                handled = true;
+            } catch (Throwable t) {
+                t.printStackTrace();
+                handled = false;
+            }
+        }
+        manager.raise(new HttpHandledEvent(this, response, handled));
         this.response = response;
         return this;
     }
@@ -172,6 +189,18 @@ public class DefaultHttpRequest extends HttpRequest {
     }
 
     @Override
+    public HttpRequest eventManager(HttpEventManager manager) {
+        this.manager = manager;
+        return this;
+    }
+
+    @Override
+    public HttpRequest event(HttpEventType type, HttpEventHandler handler) {
+        this.manager.addEventHandler(type, handler);
+        return this;
+    }
+
+    @Override
     public String method() {
         return method;
     }
@@ -215,6 +244,11 @@ public class DefaultHttpRequest extends HttpRequest {
     @Override
     public Transport transport() {
         return transport;
+    }
+
+    @Override
+    public String requestLine() {
+        return method.toUpperCase() +  " " + url.getHost() + " HTTP/1.1";
     }
 
     protected void response(HttpResponse response) {

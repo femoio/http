@@ -1,5 +1,9 @@
 package io.femo.http;
 
+import io.femo.http.events.HttpEventHandler;
+import io.femo.http.events.HttpEventManager;
+import io.femo.http.events.HttpEventType;
+
 import java.io.IOException;
 import java.io.PrintStream;
 
@@ -20,6 +24,8 @@ public abstract class HttpRequest {
     public abstract HttpRequest version(HttpVersion version);
     public abstract HttpRequest print(PrintStream printStream);
     public abstract HttpRequest data(String key, String value);
+    public abstract HttpRequest eventManager(HttpEventManager manager);
+    public abstract HttpRequest event(HttpEventType type, HttpEventHandler handler);
 
     public abstract String method();
     public abstract HttpCookie[] cookies();
@@ -30,6 +36,7 @@ public abstract class HttpRequest {
     public abstract HttpResponse response();
 
     public abstract Transport transport();
+    public abstract String requestLine();
 
     public HttpRequest execute() {
         return execute(null);
@@ -42,4 +49,5 @@ public abstract class HttpRequest {
     public HttpRequest https() {
         return transport(Transport.HTTPS);
     }
+
 }

@@ -23,4 +23,5 @@ public abstract class HttpResponse {
     public int statusCode() {
         return status().status();
     }
+    public abstract String statusLine();
 }

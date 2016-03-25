@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.femo.http.drivers.DefaultDriver;
+import io.femo.http.events.*;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -99,5 +100,26 @@ public class HttpTest {
         HttpResponse response = Http.get("http://httpbin.org/basic-auth/test/test").basicAuth("test", "test").response();
         assertNotNull(response);
         assertEquals("Status", 200, response.statusCode());
+    }
+
+    @Test
+    public void testEvents() throws Exception {
+        Http.get("http://httpbin.org/get").event(HttpEventType.ALL, new HttpEventHandler() {
+            @Override
+            public void handle(HttpEvent event) {
+                if(event.eventType() == HttpEventType.SENT) {
+                    HttpSentEvent sentEvent = (HttpSentEvent) event;
+                    System.out.println(sentEvent.request().requestLine());
+                } else if (event.eventType() == HttpEventType.RECEIVED) {
+                    HttpReceivedEvent receivedEvent = (HttpReceivedEvent) event;
+                    System.out.println(receivedEvent.request().requestLine() + " - " + receivedEvent.response().statusLine());
+                } else if (event.eventType() == HttpEventType.HANDLED) {
+                    HttpHandledEvent handledEvent = (HttpHandledEvent) event;
+                    System.out.println(handledEvent.request().requestLine() + " - " + handledEvent.response().statusLine() + " - " + (handledEvent.callbackExecuted() ? "HANDLED" : "NOT HANDLED"));
+                } else {
+                    System.out.println(event.eventType());
+                }
+            }
+        }).execute();
     }
 }
