@@ -123,7 +123,7 @@ public class DefaultHttpResponse extends HttpResponse {
     private static String readLine(BufferedInputStream bufferedInputStream) throws IOException {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         int read;
-        while (bufferedInputStream.available() > 0 && (read = bufferedInputStream.read()) != 0 && read != '\n') {
+        while ((read = bufferedInputStream.read()) != 0 && read != '\n') {
             byteArrayOutputStream.write(read);
         }
         String line = new String(byteArrayOutputStream.toByteArray()).trim();

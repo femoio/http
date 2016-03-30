@@ -3,6 +3,7 @@ package io.femo.http;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import io.femo.http.drivers.DefaultDriver;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -20,6 +21,7 @@ public class HttpsTest {
     @Before
     public void setUp() throws Exception {
         parser = new JsonParser();
+        Http.installDriver(new DefaultDriver());
     }
 
     @Test
