@@ -1,5 +1,7 @@
 package io.femo.http;
 
+import java.io.OutputStream;
+
 /**
  * Created by felix on 9/10/15.
  */
@@ -23,4 +25,6 @@ public abstract class HttpResponse {
     public int statusCode() {
         return status().status();
     }
+
+    public abstract void print(OutputStream outputStream);
 }

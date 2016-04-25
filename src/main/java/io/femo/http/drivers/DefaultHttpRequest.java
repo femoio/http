@@ -217,6 +217,11 @@ public class DefaultHttpRequest extends HttpRequest {
         return transport;
     }
 
+    @Override
+    public String path() {
+        return url.getPath();
+    }
+
     protected void response(HttpResponse response) {
         this.response = response;
     }

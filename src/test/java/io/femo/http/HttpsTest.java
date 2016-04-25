@@ -24,7 +24,7 @@ public class HttpsTest {
 
     @Test
     public void testHttpGet() throws Exception {
-        HttpResponse response = Http.get(new URL("https://httpbin.org/get")).execute().response();
+        HttpResponse response = Http.get("https://httpbin.org/get").response();
         assertEquals("Status", 200, response.status().status());
         assertNotNull("Response String", response.responseString());
     }

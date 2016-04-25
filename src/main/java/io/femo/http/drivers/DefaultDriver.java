@@ -3,6 +3,7 @@ package io.femo.http.drivers;
 import io.femo.http.HttpDriver;
 import io.femo.http.HttpRequest;
 import io.femo.http.HttpResponse;
+import io.femo.http.HttpServer;
 
 import java.net.URL;
 
@@ -18,5 +19,10 @@ public class DefaultDriver extends HttpDriver {
             request.https();
         }
         return request;
+    }
+
+    @Override
+    public HttpServer openServer(int port, boolean ssl) {
+        return null;
     }
 }

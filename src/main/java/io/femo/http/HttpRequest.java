@@ -42,4 +42,6 @@ public abstract class HttpRequest {
     public HttpRequest https() {
         return transport(Transport.HTTPS);
     }
+
+    public abstract String path();
 }
