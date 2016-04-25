@@ -18,5 +18,5 @@ public abstract class HttpDriver {
         }
     }
 
-    public abstract HttpServer openServer(int port, boolean ssl);
+    public abstract HttpServer server(int port, boolean ssl);
 }

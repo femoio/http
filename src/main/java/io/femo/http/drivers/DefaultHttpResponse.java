@@ -59,18 +59,22 @@ public class DefaultHttpResponse extends HttpResponse {
     public void print(OutputStream outputStream) {
         PrintStream stream = new PrintStream(outputStream);
         stream.printf("HTTP/1.1 %03d %s\r\n", statusCode.status(), statusCode.statusMessage());
-        for(HttpHeader header : headers.values()) {
+        for (HttpHeader header : headers.values()) {
             stream.printf("%s: %s\r\n", header.name(), header.value());
         }
-        for(HttpCookie cookie : cookies.values()) {
+        for (HttpCookie cookie : cookies.values()) {
             stream.printf("Set-Cookie: %s\r\n", cookie.value());
         }
         stream.println();
-        if(entity != null && entity.length > 0) {
+        if (entity != null && entity.length > 0) {
             stream.write(entity, 0, entity.length);
             stream.println();
         }
         stream.println();
+    }
+
+    public String statusLine() {
+        return status().status() + " " + status().statusMessage();
     }
 
     @Override
