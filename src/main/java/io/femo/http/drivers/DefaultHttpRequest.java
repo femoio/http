@@ -28,6 +28,8 @@ public class DefaultHttpRequest extends HttpRequest {
     private Transport transport = Transport.HTTP;
     protected HttpEventManager manager;
 
+    private List<Driver> drivers;
+
     public DefaultHttpRequest(URL url) {
         this.url = url;
         this.cookies = new HashMap<>();
@@ -35,6 +37,7 @@ public class DefaultHttpRequest extends HttpRequest {
         header("Connection", "close");
         header("User-Agent", "FeMoIO HTTP/0.1");
         header("Host", url.getHost());
+        this.drivers = new ArrayList<>();
         manager = new HttpEventManager();
     }
 
@@ -76,7 +79,14 @@ public class DefaultHttpRequest extends HttpRequest {
     @Override
     public HttpRequest basicAuth(String username, String password) {
         String auth = username + ":" + password;
-        header("Authorization", "Basic " + DatatypeConverter.printBase64Binary(auth.getBytes()));
+        List<Base64Driver> drivers = drivers(Base64Driver.class);
+        Base64Driver driver = null;
+        if(drivers.size() == 0) {
+            driver = new DefaultBase64Driver();
+        } else {
+            driver = drivers.get(0);
+        }
+        header("Authorization", "Basic " + driver.encodeToString(auth.getBytes()));
         return this;
     }
 
@@ -198,6 +208,21 @@ public class DefaultHttpRequest extends HttpRequest {
     public HttpRequest event(HttpEventType type, HttpEventHandler handler) {
         this.manager.addEventHandler(type, handler);
         return this;
+    }
+
+    @Override
+    public HttpRequest using(Driver driver) {
+        this.drivers.add(driver);
+        return this;
+    }
+
+    public <T extends Driver> List<T> drivers(Class<T> type) {
+        ArrayList<T> drivers = new ArrayList<>();
+        for(Driver driver : this.drivers) {
+            if(type.isAssignableFrom(driver.getClass()))
+                drivers.add((T) driver);
+        }
+        return drivers;
     }
 
     @Override

@@ -27,6 +27,8 @@ public abstract class HttpRequest {
     public abstract HttpRequest eventManager(HttpEventManager manager);
     public abstract HttpRequest event(HttpEventType type, HttpEventHandler handler);
 
+    public abstract HttpRequest using(Driver driver);
+
     public abstract String method();
     public abstract HttpCookie[] cookies();
     public abstract HttpHeader[] headers();

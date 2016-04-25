@@ -2,6 +2,7 @@ package io.femo.http;
 
 import io.femo.http.drivers.DefaultDriver;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -70,6 +71,10 @@ public class Http {
 
     public static HttpRequest patch(String url) throws MalformedURLException {
         return url(url).method("PATCH");
+    }
+
+    public static HttpServer server(int port) throws IOException {
+        return driver.server(port);
     }
 
 }

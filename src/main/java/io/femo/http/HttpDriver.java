@@ -18,4 +18,5 @@ public abstract class HttpDriver {
         }
     }
 
+    public abstract HttpServer server(int port);
 }
