@@ -44,6 +44,10 @@ public abstract class HttpRequest {
         return execute(null);
     }
 
+    public abstract HttpHeader header(String name);
+    public abstract boolean hasHeader(String name);
+
+
     public HttpRequest contentType(String contentType) {
         return header("Content-Type", contentType);
     }

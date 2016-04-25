@@ -4,8 +4,12 @@ import io.femo.http.HttpCookie;
 import io.femo.http.HttpHeader;
 import io.femo.http.HttpResponse;
 import io.femo.http.StatusCode;
+import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,6 +18,8 @@ import java.util.Map;
  * Created by felix on 9/11/15.
  */
 public class DefaultHttpResponse extends HttpResponse {
+
+    private static Logger log = LoggerFactory.getLogger("HTTP");
 
     private StatusCode statusCode;
     private Map<String, HttpHeader> headers;
@@ -38,12 +44,25 @@ public class DefaultHttpResponse extends HttpResponse {
 
     @Override
     public HttpResponse entity(byte[] entity) {
+        header("Content-Length", String.valueOf(entity.length));
+        if(!hasHeader("Content-Type")) {
+            header("Content-Type", "text/plain");
+        }
+        if(statusCode == null) {
+            statusCode = StatusCode.OK;
+        }
         this.entity = entity;
         return this;
     }
 
     public boolean hasHeader(String name) {
         return headers.containsKey(name);
+    }
+
+    @Override
+    public HttpResponse header(String name, String value) {
+        this.headers.put(name, new HttpHeader(name, value));
+        return this;
     }
 
     @Override
@@ -56,8 +75,17 @@ public class DefaultHttpResponse extends HttpResponse {
     }
 
     @Override
+    public HttpResponse cookie(String name, String value) {
+        this.cookies.put(name, new HttpCookie(name, value));
+        return this;
+    }
+
+    @Override
     public void print(OutputStream outputStream) {
         PrintStream stream = new PrintStream(outputStream);
+        if(statusCode == null) {
+            statusCode = StatusCode.INTERNAL_SERVER_ERROR;
+        }
         stream.printf("HTTP/1.1 %03d %s\r\n", statusCode.status(), statusCode.statusMessage());
         for (HttpHeader header : headers.values()) {
             stream.printf("%s: %s\r\n", header.name(), header.value());
@@ -65,12 +93,12 @@ public class DefaultHttpResponse extends HttpResponse {
         for (HttpCookie cookie : cookies.values()) {
             stream.printf("Set-Cookie: %s\r\n", cookie.value());
         }
-        stream.println();
+        stream.print("\r\n");
         if (entity != null && entity.length > 0) {
             stream.write(entity, 0, entity.length);
-            stream.println();
+            stream.print("\r\n");
         }
-        stream.println();
+        stream.print("\r\n");
     }
 
     public String statusLine() {
@@ -98,11 +126,10 @@ public class DefaultHttpResponse extends HttpResponse {
     }
 
     public static DefaultHttpResponse read(InputStream inputStream) throws IOException {
-        BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
-        String statusLine = readLine(bufferedInputStream);
+        String statusLine = readLine(inputStream);
         DefaultHttpResponse response = new DefaultHttpResponse();
         response.statusCode = StatusCode.constructFromHttpStatusLine(statusLine);
-        statusLine = readLine(bufferedInputStream);
+        statusLine = readLine(inputStream);
         while (statusLine != null) {
             if(statusLine.equals(""))
                 break;
@@ -118,32 +145,74 @@ public class DefaultHttpResponse extends HttpResponse {
             } else {
                 response.headers.put(name, new HttpHeader(name, value));
             }
-            statusLine = readLine(bufferedInputStream);
+            statusLine = readLine(inputStream);
         }
         if(response.hasHeader("Content-Length")) {
             int length = Integer.parseInt(response.header("Content-Length").value());
+            if(length == 0) {
+                return response;
+            }
             byte[] entity = new byte[length];
-            bufferedInputStream.read(entity, 0, length);
+            inputStream.read(entity, 0, length);
             response.entity = entity;
         } else {
-            byte buffer[] = new byte[1024];
+            log.debug("No content-length received. Treating entity as non existent!");
+            /*byte buffer[] = new byte[1024];
             int read;
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            while ((read = bufferedInputStream.read(buffer)) != 0) {
+            while ((read = inputStream.read(buffer)) != 0) {
                 byteArrayOutputStream.write(buffer, 0, read);
             }
-            response.entity = byteArrayOutputStream.toByteArray();
+            response.entity = byteArrayOutputStream.toByteArray();*/
         }
         return response;
     }
 
-    private static String readLine(BufferedInputStream bufferedInputStream) throws IOException {
+    @NotNull
+    private static String readLine(InputStream inputStream) {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        log.debug("Reading line for HTTP head");
         int read;
-        while ((read = bufferedInputStream.read()) != 0 && read != '\n') {
-            byteArrayOutputStream.write(read);
+        try {
+            while (/*isAvailable(inputStream) && */(read = inputStream.read()) != 0) {
+                if(read == '\r') {
+                    read = inputStream.read();
+                    if(read == '\n') {
+                        break;
+                    } else {
+                        continue;
+                    }
+                }
+                if(read == '\n') {
+                    log.warn("Received possibly malformed HTTP Response");
+                    break;
+                }
+                byteArrayOutputStream.write(read);
+            }
+        } catch (IOException e) {
+            log.warn("Exception while reading line from input", e);
         }
-        String line = new String(byteArrayOutputStream.toByteArray()).trim();
-        return line;
+        log.debug("Read: " + byteArrayOutputStream.toString());
+        return byteArrayOutputStream.toString().trim();
+    }
+
+    private static boolean isAvailable(InputStream inputStream) throws IOException {
+        try {
+            int timeout = 0;
+            while (inputStream.available() == 0) {
+                Thread.sleep(10);
+                timeout++;
+                if(timeout == 300) {
+                    log.warn("Reached timeout of 3000 ms");
+                    return false;
+                }
+            }
+            if(timeout != 0)
+                log.debug("Time until bytes available: {}", timeout * 10);
+        } catch (InterruptedException e) {
+            log.warn("Error while waiting for stream to become ready!", e);
+            return false;
+        }
+        return true;
     }
 }

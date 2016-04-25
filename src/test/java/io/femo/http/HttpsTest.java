@@ -5,9 +5,15 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.femo.http.drivers.DefaultDriver;
 import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.DisableOnDebug;
+import org.junit.rules.TestRule;
+import org.junit.rules.Timeout;
 
 import java.net.URL;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
 
@@ -16,10 +22,13 @@ import static org.junit.Assert.*;
  */
 public class HttpsTest {
 
-    private JsonParser parser;
+    private static JsonParser parser;
 
-    @Before
-    public void setUp() throws Exception {
+    @Rule
+    public TestRule timeout = new DisableOnDebug(new Timeout(10, TimeUnit.SECONDS));
+
+    @BeforeClass
+    public static void setUp() throws Exception {
         parser = new JsonParser();
         Http.installDriver(new DefaultDriver());
     }

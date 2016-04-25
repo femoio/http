@@ -18,9 +18,11 @@ public abstract class HttpResponse {
 
     public abstract HttpHeader header(String name);
     public abstract boolean hasHeader(String name);
+    public abstract HttpResponse header(String name, String value);
 
     public abstract HttpCookie cookie(String name);
     public abstract boolean hasCookie(String name);
+    public abstract HttpResponse cookie(String name, String value);
 
     public int statusCode() {
         return status().status();

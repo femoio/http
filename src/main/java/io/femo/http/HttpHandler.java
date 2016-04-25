@@ -1,9 +1,14 @@
 package io.femo.http;
 
+
+import io.femo.http.HttpRequest;
+import io.femo.http.HttpResponse;
+
 /**
- * Created by felix on 2/24/16.
+ * Created by Felix Resch on 25-Apr-16.
  */
+@FunctionalInterface
 public interface HttpHandler {
 
-    void handle(HttpRequest request, HttpResponse response, HttpHandler next);
+    boolean handle(HttpRequest request, HttpResponse response) throws HttpHandleException;
 }

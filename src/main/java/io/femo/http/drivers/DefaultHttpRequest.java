@@ -31,14 +31,18 @@ public class DefaultHttpRequest extends HttpRequest {
     private List<Driver> drivers;
 
     public DefaultHttpRequest(URL url) {
+        this();
         this.url = url;
-        this.cookies = new HashMap<>();
-        this.headers = new HashMap<>();
         header("Connection", "close");
         header("User-Agent", "FeMoIO HTTP/0.1");
         header("Host", url.getHost());
         this.drivers = new ArrayList<>();
         manager = new HttpEventManager();
+    }
+
+    protected DefaultHttpRequest() {
+        this.cookies = new HashMap<>();
+        this.headers = new HashMap<>();
     }
 
     @Override
@@ -146,9 +150,9 @@ public class DefaultHttpRequest extends HttpRequest {
                 writeUrlFormEncoded();
             }
         }
-        output.printf("%s %s %s\n", method.toUpperCase(), url.getPath() + (url.getQuery() != null ? "?" + url.getQuery() : ""), "HTTP/1.1");
+        output.printf("%s %s %s\r\n", method.toUpperCase(), url.getPath() + (url.getQuery() != null ? "?" + url.getQuery() : ""), "HTTP/1.1");
         for (HttpHeader header : headers.values()) {
-            output.printf("%s: %s\n", header.name(), header.value());
+            output.printf("%s: %s\r\n", header.name(), header.value());
         }
         if(cookies.size() > 0) {
             StringBuilder builder = new StringBuilder();
@@ -158,16 +162,16 @@ public class DefaultHttpRequest extends HttpRequest {
                 builder.append(cookie.value());
                 builder.append(";");
             }
-            output.printf("%s: %s\n", "Cookie", builder.toString());
-            output.println();
+            output.printf("%s: %s\r\n", "Cookie", builder.toString());
+            output.print("\r\n");
         }
         if(entity != null) {
-            output.println();
+            output.print("\r\n");
             output.write(entity, 0, entity.length);
-            output.println();
+            output.print("\r\n");
         }
-        output.println();
-        output.println();
+        output.print("\r\n");
+        output.print("\r\n");
         return this;
     }
 
@@ -280,6 +284,16 @@ public class DefaultHttpRequest extends HttpRequest {
         return method.toUpperCase() +  " " + url.getHost() + " HTTP/1.1";
     }
 
+    @Override
+    public HttpHeader header(String name) {
+        return headers.get(name);
+    }
+
+    @Override
+    public boolean hasHeader(String name) {
+        return headers.containsKey(name);
+    }
+
     protected void response(HttpResponse response) {
         this.response = response;
     }
@@ -287,4 +301,6 @@ public class DefaultHttpRequest extends HttpRequest {
     public URL url() {
         return url;
     }
+
+
 }

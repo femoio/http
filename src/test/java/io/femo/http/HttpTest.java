@@ -7,6 +7,7 @@ import com.google.gson.JsonParser;
 import io.femo.http.drivers.DefaultDriver;
 import io.femo.http.events.*;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import java.net.URL;
@@ -18,10 +19,10 @@ import static org.junit.Assert.*;
  */
 public class HttpTest {
 
-    private JsonParser parser;
+    private static JsonParser parser;
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeClass
+    public static void setUp() throws Exception {
         parser = new JsonParser();
         Http.installDriver(new DefaultDriver());
     }

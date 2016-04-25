@@ -1,6 +1,7 @@
 package io.femo.http;
 
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -33,6 +34,5 @@ public class HttpCookieTest {
     public void testSetValue() throws Exception {
         httpCookie.value("abcd");
         assertEquals("Cookie Value", "abcd", httpCookie.value());
-
     }
 }

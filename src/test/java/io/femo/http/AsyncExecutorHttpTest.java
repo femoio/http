@@ -6,6 +6,7 @@ import com.google.gson.JsonParser;
 import io.femo.http.drivers.AsynchronousDriver;
 import org.jodah.concurrentunit.Waiter;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.net.URL;
@@ -18,10 +19,10 @@ import static org.junit.Assert.assertNotNull;
  */
 public class AsyncExecutorHttpTest {
 
-    private JsonParser parser;
+    private static JsonParser parser;
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeClass
+    public static void setUp() throws Exception {
         parser = new JsonParser();
         Http.installDriver(new AsynchronousDriver(5));
     }
@@ -60,7 +61,7 @@ public class AsyncExecutorHttpTest {
             }
         });
         try {
-            waiter.await(2000);
+            waiter.await(3000);
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }
@@ -96,17 +97,17 @@ public class AsyncExecutorHttpTest {
             }
         });
         try {
-            waiter1.await(2000);
+            waiter1.await(3000);
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }
         try {
-            waiter2.await(2000);
+            waiter2.await(3000);
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }
         try {
-            waiter3.await(2000);
+            waiter3.await(3000);
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }
