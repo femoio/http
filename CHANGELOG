@@ -1,0 +1,3 @@
+0.0.2
+    Dropped support for Java 7, in favor of fluent API
+    Added simple HTTP Server support with fluent API

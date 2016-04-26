@@ -8,9 +8,14 @@ public interface HttpServer {
     HttpServer start();
     HttpServer stop();
 
+    HttpServer use(HttpMiddleware handler);
+    HttpServer use(String path, HttpMiddleware handler);
+
     HttpServer use(HttpHandler handler);
     HttpServer use(String path, HttpHandler httpHandler);
     HttpServer use(String method, String path, HttpHandler httpHandler);
+
+    HttpServer after(HttpMiddleware middleware);
 
     default HttpServer get(String path, HttpHandler httpHandler) {
         return use(Http.GET, path, httpHandler);

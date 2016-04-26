@@ -1,10 +1,12 @@
 package io.femo.http.drivers;
 
 import io.femo.http.HttpHandler;
+import io.femo.http.HttpMiddleware;
 import io.femo.http.HttpServer;
 import io.femo.http.StatusCode;
-import io.femo.http.drivers.server.HttpHandle;
+import io.femo.http.drivers.server.HttpHandlerHandle;
 import io.femo.http.drivers.server.HttpHandlerStack;
+import io.femo.http.drivers.server.HttpMiddlewareHandle;
 import io.femo.http.drivers.server.HttpServerThread;
 
 /**
@@ -45,8 +47,25 @@ public class DefaultHttpServer implements HttpServer {
     }
 
     @Override
+    public HttpServer use(HttpMiddleware handler) {
+        HttpMiddlewareHandle handle = new HttpMiddlewareHandle();
+        handle.setHttpMiddleware(handler);
+        httpHandlerStack.submit(handle);
+        return this;
+    }
+
+    @Override
+    public HttpServer use(String path, HttpMiddleware handler) {
+        HttpMiddlewareHandle handle = new HttpMiddlewareHandle();
+        handle.setPath(path);
+        handle.setHttpMiddleware(handler);
+        httpHandlerStack.submit(handle);
+        return this;
+    }
+
+    @Override
     public HttpServer use(HttpHandler handler) {
-        HttpHandle handle = new HttpHandle();
+        HttpHandlerHandle handle = new HttpHandlerHandle();
         handle.setHandler(handler);
         httpHandlerStack.submit(handle);
         return this;
@@ -54,7 +73,7 @@ public class DefaultHttpServer implements HttpServer {
 
     @Override
     public HttpServer use(String path, HttpHandler httpHandler) {
-        HttpHandle handle = new HttpHandle();
+        HttpHandlerHandle handle = new HttpHandlerHandle();
         handle.setHandler(httpHandler);
         handle.setPath(path);
         httpHandlerStack.submit(handle);
@@ -63,11 +82,17 @@ public class DefaultHttpServer implements HttpServer {
 
     @Override
     public HttpServer use(String method, String path, HttpHandler httpHandler) {
-        HttpHandle handle = new HttpHandle();
+        HttpHandlerHandle handle = new HttpHandlerHandle();
         handle.setHandler(httpHandler);
         handle.setMethod(method);
         handle.setPath(path);
         httpHandlerStack.submit(handle);
+        return this;
+    }
+
+    @Override
+    public HttpServer after(HttpMiddleware middleware) {
+        httpHandlerStack.submitAfter(middleware);
         return this;
     }
 

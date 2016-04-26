@@ -66,6 +66,9 @@ public class DefaultHttpRequest extends HttpRequest {
     @Override
     public HttpRequest entity(byte[] entity) {
         header("Content-Length", entity.length + "");
+        if(!hasHeader("Content-Type")) {
+            header("Content-Type", "text/plain");
+        }
         this.entity = entity;
         return this;
     }
@@ -250,12 +253,12 @@ public class DefaultHttpRequest extends HttpRequest {
 
     @Override
     public byte[] entityBytes() {
-        return new byte[0];
+        return entity;
     }
 
     @Override
     public String entityString() {
-        return null;
+        return new String(entity);
     }
 
     @Override

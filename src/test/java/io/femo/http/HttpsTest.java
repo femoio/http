@@ -4,10 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.femo.http.drivers.DefaultDriver;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.rules.DisableOnDebug;
 import org.junit.rules.TestRule;
 import org.junit.rules.Timeout;
@@ -20,12 +17,13 @@ import static org.junit.Assert.*;
 /**
  * Created by felix on 2/7/16.
  */
+@Ignore
 public class HttpsTest {
 
     private static JsonParser parser;
 
     @Rule
-    public TestRule timeout = new DisableOnDebug(new Timeout(10, TimeUnit.SECONDS));
+    public TestRule timeout = new DisableOnDebug(new Timeout(20, TimeUnit.SECONDS));
 
     @BeforeClass
     public static void setUp() throws Exception {

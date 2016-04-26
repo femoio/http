@@ -69,3 +69,34 @@ perform a huge amount of requests.
         Http.installDriver(new AsynchronousDriver(5));
         
 You have to supply the constructor with the amount of executor threads you want to spawn at the start of the program.
+
+## HTTP Server
+
+To start a simple HTTP Server on any port simply call the *server(port:int)* of the Http class and start the server
+  
+        Http.server(8080).start();
+        
+This will return an object of type HttpServer and will start an HTTP server on port 8080 that 404s every request.
+
+To provide some content, you can use any of the *use* methods offered by HttpServer. For simplicity standard HTTP methods have predefined methods to use.
+
+        server.get('/', (request, response) -> {response.entity("Hello World); return true}) //This print Hello World to any clients requesting GET /
+        
+        server.post('/', (req, res) -> {res.entity(req.requestBytes()); return true;}); //This echos everything a client sends to POST /
+        
+To provide funtionality for a whole path, or for all requests middleware can be used. To log every request code like this could be used:
+
+        server.use((HttpMiddleware) (req, res) -> System.out.println(req.method() + " " + req.path()));
+        
+If you also want to log information that is available after a request has been handled, use the HttpServer.after() method.
+
+        server.after((request, response) -> {
+                  System.out.printf("%03d %-4s %s - %s\n", response.statusCode(), request.method(), request.path(),
+                          response.hasHeader("Content-Length") ? response.header("Content-Length").value() : " -- ");
+              })
+
+To stop a running instance use the *stop()* method.
+
+        server.stop()
+        
+The server will stop all it's listeners and threads after all pending requests have been handled.
