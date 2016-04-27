@@ -1,9 +1,6 @@
 package io.femo.http.drivers.server;
 
-import io.femo.http.HttpHandleException;
-import io.femo.http.HttpMiddleware;
-import io.femo.http.HttpRequest;
-import io.femo.http.HttpResponse;
+import io.femo.http.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,27 +34,43 @@ public class HttpHandlerStack {
     }
 
     public void handle(HttpRequest httpRequest, HttpResponse httpResponse) {
-        for (HttpHandle httpHandle : httpHandlerHandles) {
-            if (httpHandle.matches(httpRequest)) {
-                try {
-                    if (httpHandle.handle(httpRequest, httpResponse)) {
-                        break;
+        try {
+            for (HttpHandle httpHandle : httpHandlerHandles) {
+                if (httpHandle.matches(httpRequest)) {
+                    try {
+                        if (httpHandle.handle(httpRequest, httpResponse)) {
+                            break;
+                        }
+                    } catch (HttpHandleException e) {
+                        log.warn("Error while handling HTTP request", e);
+                        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                        e.printStackTrace(new PrintStream(byteArrayOutputStream));
+                        httpResponse.status(e.getStatusCode());
+                        httpResponse.entity(byteArrayOutputStream.toByteArray());
                     }
-                } catch (HttpHandleException e) {
-                    log.warn("Error while handling HTTP request", e);
-                    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                    e.printStackTrace(new PrintStream(byteArrayOutputStream));
-                    httpResponse.status(e.getStatusCode());
-                    httpResponse.entity(byteArrayOutputStream.toByteArray());
                 }
             }
+        } catch (Throwable t) {
+            log.error("Error while handling " + httpRequest.method() + " " + httpRequest.path(), t);
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            t.printStackTrace(new PrintStream(byteArrayOutputStream));
+            httpResponse.entity(byteArrayOutputStream.toByteArray());
+            httpResponse.status(StatusCode.INTERNAL_SERVER_ERROR);
         }
-        for(HttpMiddleware middleware : after) {
-            try {
-                middleware.handle(httpRequest, httpResponse);
-            } catch (HttpHandleException e) {
-                log.warn("Error while performing finalizing operations on HTTP request", e);
+        try {
+            for (HttpMiddleware middleware : after) {
+                try {
+                    middleware.handle(httpRequest, httpResponse);
+                } catch (HttpHandleException e) {
+                    log.warn("Error while performing finalizing operations on HTTP request", e);
+                }
             }
+        } catch (Throwable t) {
+            log.error("Error while finishing " + httpRequest.method() + " " + httpRequest.path(), t);
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            t.printStackTrace(new PrintStream(byteArrayOutputStream));
+            httpResponse.entity(byteArrayOutputStream.toByteArray());
+            httpResponse.status(StatusCode.INTERNAL_SERVER_ERROR);
         }
     }
 }

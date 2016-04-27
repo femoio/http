@@ -12,9 +12,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * Created by Felix Resch on 25-Apr-16.
@@ -29,10 +27,13 @@ public class HttpServerThread extends Thread {
     private boolean ready = false;
     private final Object lock = new Object();
 
+    private ConcurrentLinkedQueue<Future<?>> futures;
+
     private ExecutorService executorService;
 
     public HttpServerThread(HttpHandlerStack httpHandlerStack) {
         this.httpHandlerStack = httpHandlerStack;
+        this.futures = new ConcurrentLinkedQueue<>();
         setName("HTTP-" + port);
     }
 
@@ -56,7 +57,7 @@ public class HttpServerThread extends Thread {
             }
             try {
                 Socket socket = serverSocket.accept();
-                executorService.submit(new SocketHandler(socket));
+                futures.add(executorService.submit(new SocketHandler(socket)));
             } catch (SocketTimeoutException e) {
                 log.debug("Socket timeout");
             } catch (IOException e) {
