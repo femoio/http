@@ -33,12 +33,14 @@ public class HttpHandlerStack {
         after.add(httpMiddleware);
     }
 
-    public void handle(HttpRequest httpRequest, HttpResponse httpResponse) {
+    public boolean handle(HttpRequest httpRequest, HttpResponse httpResponse) {
+        boolean handled = false;
         try {
             for (HttpHandle httpHandle : httpHandlerHandles) {
                 if (httpHandle.matches(httpRequest)) {
                     try {
                         if (httpHandle.handle(httpRequest, httpResponse)) {
+                            handled = true;
                             break;
                         }
                     } catch (HttpHandleException e) {
@@ -72,5 +74,19 @@ public class HttpHandlerStack {
             httpResponse.entity(byteArrayOutputStream.toByteArray());
             httpResponse.status(StatusCode.INTERNAL_SERVER_ERROR);
         }
+        return handled;
+    }
+
+    public boolean matches(HttpRequest httpRequest) {
+        for (HttpHandle httpHandle : httpHandlerHandles) {
+            if (httpHandle.matches(httpRequest)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void parentPath(String path) {
+        httpHandlerHandles.forEach(httpHandle -> httpHandle.parentPath(path));
     }
 }

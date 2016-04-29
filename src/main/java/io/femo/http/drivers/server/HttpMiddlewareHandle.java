@@ -1,6 +1,7 @@
 package io.femo.http.drivers.server;
 
 import io.femo.http.*;
+import static io.femo.http.HttpRoutable.joinPaths;
 
 /**
  * Created by felix on 4/26/16.
@@ -24,6 +25,11 @@ public class HttpMiddlewareHandle implements HttpHandle {
     public boolean handle(HttpRequest request, HttpResponse response) throws HttpHandleException {
         httpMiddleware.handle(request, response);
         return false;
+    }
+
+    @Override
+    public void parentPath(String path) {
+        this.path = joinPaths(path, this.path);
     }
 
     public String getPath() {

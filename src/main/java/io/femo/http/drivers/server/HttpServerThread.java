@@ -3,6 +3,7 @@ package io.femo.http.drivers.server;
 import io.femo.http.HttpRequest;
 import io.femo.http.drivers.DefaultHttpResponse;
 import io.femo.http.drivers.IncomingHttpRequest;
+import io.femo.http.helper.Http;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +51,7 @@ public class HttpServerThread extends Thread {
             log.warn("Could not set timeout. Shutdown may lag a bit...", e);
         }
         log.debug("Starting Executor Service");
-        executorService = Executors.newCachedThreadPool();
+        executorService = Executors.newCachedThreadPool(new HttpThreadFactory(port));
         while (!isInterrupted()) {
             synchronized (lock) {
                 this.ready = true;
@@ -110,6 +111,9 @@ public class HttpServerThread extends Thread {
             try {
                 DefaultHttpResponse response = new DefaultHttpResponse();
                 HttpRequest httpRequest = IncomingHttpRequest.readFromStream(socket.getInputStream());
+                Http.remote(socket.getRemoteSocketAddress());
+                Http.request(httpRequest);
+                Http.response(response);
                 httpHandlerStack.handle(httpRequest, response);
                 ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
                 response.print(byteArrayOutputStream);
@@ -117,6 +121,7 @@ public class HttpServerThread extends Thread {
                 byteArrayOutputStream.writeTo(socket.getOutputStream());
                 socket.getOutputStream().flush();
                 socket.close();
+
             } catch (IOException e) {
                 log.warn("Socket Error", e);
             }

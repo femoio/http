@@ -1,6 +1,9 @@
 package io.femo.http;
 
 import io.femo.http.drivers.DefaultDriver;
+import io.femo.http.drivers.DefaultHttpRouter;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -89,4 +92,8 @@ public class Http {
         return driver.server(port, ssl);
     }
 
+    @Contract(" -> !null")
+    public static HttpRouter router() {
+        return new DefaultHttpRouter();
+    }
 }
