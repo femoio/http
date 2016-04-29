@@ -29,7 +29,7 @@ public class HttpTest {
 
     @Test
     public void testHttpGet() throws Exception {
-        HttpResponse response = Http.get(new URL("http://httpbin.org/get")).execute().response();
+        HttpResponse response = Http.get(new URL("http://httpbin.org/get")).response();
         assertEquals("Status", 200, response.status().status());
         assertNotNull("Response String", response.responseString());
     }

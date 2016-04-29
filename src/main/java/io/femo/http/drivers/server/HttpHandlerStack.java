@@ -49,6 +49,8 @@ public class HttpHandlerStack {
                         e.printStackTrace(new PrintStream(byteArrayOutputStream));
                         httpResponse.status(e.getStatusCode());
                         httpResponse.entity(byteArrayOutputStream.toByteArray());
+                        handled = true;
+                        break;
                     }
                 }
             }

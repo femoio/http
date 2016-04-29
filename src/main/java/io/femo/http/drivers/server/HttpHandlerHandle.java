@@ -60,6 +60,7 @@ public class HttpHandlerHandle implements HttpHandle {
 
     @Override
     public void parentPath(String path) {
-        this.path = joinPaths(path, this.path);
+        if(this.path != null)
+            this.path = joinPaths(path, this.path);
     }
 }
