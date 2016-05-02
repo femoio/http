@@ -3,7 +3,6 @@ package io.femo.http.drivers;
 import io.femo.http.HttpException;
 import io.femo.http.HttpRequest;
 import io.femo.http.HttpResponseCallback;
-import io.femo.http.Transport;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -36,7 +35,7 @@ public class AsynchronousHttpRequest extends DefaultHttpRequest {
                     Socket socket = transport().openSocket(url.getHost(), port);
                     PrintStream printStream = new PrintStream(socket.getOutputStream());
                     print(printStream);
-                    response = DefaultHttpResponse.read(socket.getInputStream());
+                    response = DefaultHttpResponse.read(socket.getInputStream(), null);
                 } catch (IOException e) {
                     throw new HttpException(AsynchronousHttpRequest.this, e);
                 }

@@ -121,7 +121,7 @@ public class HttpServerThread extends Thread {
                 byteArrayOutputStream.writeTo(socket.getOutputStream());
                 socket.getOutputStream().flush();
                 socket.close();
-
+                Http.get().reset();
             } catch (IOException e) {
                 log.warn("Socket Error", e);
             }

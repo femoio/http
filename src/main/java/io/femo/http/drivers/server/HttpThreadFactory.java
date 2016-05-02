@@ -19,7 +19,7 @@ public class HttpThreadFactory implements ThreadFactory {
         HttpThread httpThread = new HttpThread(r);
         httpThread.setName(String.format("pool-%04d-thread-%03d", port, counter++));
         httpThread.setDaemon(true);
-        httpThread.setPriority(Thread.currentThread().getPriority() > Thread.MIN_PRIORITY ? Thread.currentThread().getPriority() - 1 : Thread.MIN_PRIORITY);
+        httpThread.setPriority(Thread.MAX_PRIORITY);
         return httpThread;
     }
 }

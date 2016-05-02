@@ -5,6 +5,7 @@ import io.femo.http.events.HttpEventManager;
 import io.femo.http.events.HttpEventType;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintStream;
 
 /**
@@ -28,6 +29,8 @@ public abstract class HttpRequest {
     public abstract HttpRequest event(HttpEventType type, HttpEventHandler handler);
 
     public abstract HttpRequest using(Driver driver);
+
+    public abstract HttpRequest pipe(OutputStream outputStream);
 
     public abstract String method();
     public abstract HttpCookie[] cookies();

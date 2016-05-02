@@ -31,8 +31,8 @@ public class Http {
         return driver.url(url);
     }
 
-    public static HttpRequest url(String url) throws MalformedURLException {
-        return url(new URL(url));
+    public static HttpRequest url(String url)  {
+        return driver.url(url);
     }
 
     public static HttpRequest get(URL url) {
@@ -59,27 +59,27 @@ public class Http {
         return url(url).method("PATCH");
     }
 
-    public static HttpRequest get(String url) throws MalformedURLException {
+    public static HttpRequest get(String url) {
         return url(url).method("GET");
     }
 
-    public static HttpRequest post(String url) throws MalformedURLException {
+    public static HttpRequest post(String url) {
         return url(url).method("POST");
     }
 
-    public static HttpRequest put(String url) throws MalformedURLException {
+    public static HttpRequest put(String url) {
         return url(url).method("PUT");
     }
 
-    public static HttpRequest update(String url) throws MalformedURLException {
+    public static HttpRequest update(String url) {
         return url(url).method("UPDATE");
     }
 
-    public static HttpRequest delete(String url) throws MalformedURLException {
+    public static HttpRequest delete(String url) {
         return url(url).method("DELETE");
     }
 
-    public static HttpRequest patch(String url) throws MalformedURLException {
+    public static HttpRequest patch(String url) {
         return url(url).method("PATCH");
     }
 

@@ -71,4 +71,13 @@ public class Http {
             plugableObject.add(socketAddress);
         }
     }
+
+    @Nullable
+    public static PlugableObject get() {
+        if(Thread.currentThread() instanceof PlugableObject) {
+            return (PlugableObject) Thread.currentThread();
+        } else {
+            return null;
+        }
+    }
 }

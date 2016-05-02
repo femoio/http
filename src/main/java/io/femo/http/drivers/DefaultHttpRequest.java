@@ -2,11 +2,15 @@ package io.femo.http.drivers;
 
 import io.femo.http.*;
 import io.femo.http.events.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -18,6 +22,8 @@ import java.util.concurrent.TimeoutException;
  */
 public class DefaultHttpRequest extends HttpRequest {
 
+    private static Logger log = LoggerFactory.getLogger("HTTP");
+
     private String method;
     private Map<String, HttpCookie> cookies;
     private Map<String, HttpHeader> headers;
@@ -27,6 +33,7 @@ public class DefaultHttpRequest extends HttpRequest {
     private Map<String, byte[]> data;
     private Transport transport = Transport.HTTP;
     protected HttpEventManager manager;
+    private OutputStream pipe;
 
     private List<Driver> drivers;
 
@@ -106,7 +113,7 @@ public class DefaultHttpRequest extends HttpRequest {
             PrintStream output = new PrintStream(socket.getOutputStream());
             print(output);
             manager.raise(new HttpSentEvent(this));
-            response = DefaultHttpResponse.read(socket.getInputStream());
+            response = DefaultHttpResponse.read(socket.getInputStream(), pipe);
             manager.raise(new HttpReceivedEvent(this, response));
             socket.close();
         } catch (IOException e) {
@@ -126,6 +133,15 @@ public class DefaultHttpRequest extends HttpRequest {
         }
         manager.raise(new HttpHandledEvent(this, response, handled));
         this.response = response;
+        if(response.status().status() == StatusCode.FOUND.status()) {
+            try {
+                this.url = new URL(response.header("Location").value());
+                response.cookies().forEach(httpCookie -> cookie(httpCookie.name(), httpCookie.value()));
+                execute(callback);
+            } catch (MalformedURLException e) {
+                throw new HttpException(this, e);
+            }
+        }
         return this;
     }
 
@@ -220,6 +236,12 @@ public class DefaultHttpRequest extends HttpRequest {
     @Override
     public HttpRequest using(Driver driver) {
         this.drivers.add(driver);
+        return this;
+    }
+
+    @Override
+    public HttpRequest pipe(OutputStream outputStream) {
+        this.pipe = outputStream;
         return this;
     }
 
