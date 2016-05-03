@@ -2,6 +2,13 @@ package io.femo.http.drivers;
 
 import io.femo.http.*;
 import io.femo.http.drivers.server.*;
+
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.TimeZone;
+
 import static io.femo.http.HttpRoutable.joinPaths;
 
 /**
@@ -20,6 +27,7 @@ public class DefaultHttpServer implements HttpServer {
         this.port = port;
         this.ssl = ssl;
         this.httpHandlerStack = new HttpHandlerStack();
+        use((HttpMiddleware) (req, res) -> res.header("Date", ZonedDateTime.now(ZoneId.of("UTC")).format(DateTimeFormatter.RFC_1123_DATE_TIME)));
     }
 
     @Override
