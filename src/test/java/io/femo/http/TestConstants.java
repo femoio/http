@@ -5,8 +5,8 @@ package io.femo.http;
  */
 public final class TestConstants {
 
-    public final class HTTP {
+    public static final class HTTP {
 
-        public static final String HOST = "localhost:8000";
+        public static final String HOST = System.getenv("HTTPBIN_HOST") == null ? "httpbin.org" : System.getenv("HTTPBIN_HOST");
     }
 }

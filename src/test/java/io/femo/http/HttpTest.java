@@ -30,6 +30,7 @@ public class HttpTest {
     public static void setUp() throws Exception {
         parser = new JsonParser();
         Http.installDriver(new DefaultDriver());
+        System.out.println("Using " + TestConstants.HTTP.HOST);
     }
 
     @Test
