@@ -153,10 +153,11 @@ public class DefaultHttpResponse extends HttpResponse {
     }
 
     public static DefaultHttpResponse read(InputStream inputStream, OutputStream pipe) throws IOException {
-        String statusLine = readLine(inputStream);
+        InputBuffer inputBuffer = new InputBuffer(inputStream);
+        String statusLine = inputBuffer.readUntil((byte) '\r', 1);
         DefaultHttpResponse response = new DefaultHttpResponse();
         response.statusCode = StatusCode.constructFromHttpStatusLine(statusLine);
-        statusLine = readLine(inputStream);
+        statusLine = inputBuffer.readUntil((byte) '\r', 1);
         while (statusLine != null) {
             if(statusLine.equals(""))
                 break;
@@ -175,24 +176,14 @@ public class DefaultHttpResponse extends HttpResponse {
             statusLine = readLine(inputStream);
         }
         if(response.hasHeader("Content-Length")) {
+            int length = response.header("Content-Length").asInt();
             if(pipe != null) {
                 ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                byte[] buffer = new byte[1024];
-                int read;
-                while ((read = inputStream.read(buffer, 0, 1024)) > 0) {
-                    pipe.write(buffer, 0, read);
-                    byteArrayOutputStream.write(buffer, 0, read);
-                }
+                inputBuffer.pipe(length, pipe, byteArrayOutputStream);
                 pipe.close();
-                response.entity = byteArrayOutputStream.toByteArray();
+                response.entity(byteArrayOutputStream.toByteArray());
             } else {
-                int length = Integer.parseInt(response.header("Content-Length").value());
-                if(length == 0) {
-                    return response;
-                }
-                byte[] entity = new byte[length];
-                inputStream.read(entity, 0, length);
-                response.entity = entity;
+                response.entity(inputBuffer.get(length));
             }
         } else {
             log.debug("No content-length received. Treating entity as non existent!");

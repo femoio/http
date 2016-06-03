@@ -17,7 +17,6 @@ import static org.junit.Assert.*;
 /**
  * Created by felix on 2/7/16.
  */
-@Ignore
 public class HttpsTest {
 
     private static JsonParser parser;

@@ -109,11 +109,13 @@ public class HttpServerThread extends Thread {
         @Override
         public void run() {
             try {
+                long start = System.currentTimeMillis();
                 DefaultHttpResponse response = new DefaultHttpResponse();
                 HttpRequest httpRequest = IncomingHttpRequest.readFromStream(socket.getInputStream());
                 Http.remote(socket.getRemoteSocketAddress());
                 Http.request(httpRequest);
                 Http.response(response);
+                Http.get().add(socket);
                 httpHandlerStack.handle(httpRequest, response);
                 ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
                 response.print(byteArrayOutputStream);
@@ -121,6 +123,7 @@ public class HttpServerThread extends Thread {
                 byteArrayOutputStream.writeTo(socket.getOutputStream());
                 socket.getOutputStream().flush();
                 socket.close();
+                log.info("Took {} ms to handle request", (System.currentTimeMillis() - start));
                 Http.get().reset();
             } catch (IOException e) {
                 log.warn("Socket Error", e);

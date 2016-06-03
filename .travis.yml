@@ -3,3 +3,5 @@ jdk:
   - oraclejdk8
 before_install:
   - bash install_deps.sh
+notifications:
+  slack: femoio:doI2URJh5J7kPNQBzg3V8AZO

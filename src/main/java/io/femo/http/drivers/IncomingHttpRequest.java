@@ -10,6 +10,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.ArrayList;
 
 /**
  * Created by felix on 2/25/16.
@@ -31,10 +32,11 @@ public class IncomingHttpRequest extends DefaultHttpRequest {
 
 
     public static HttpRequest readFromStream(InputStream inputStream) throws IOException {
-        String statusLine = readLine(inputStream);
+        InputBuffer inputBuffer = new InputBuffer(inputStream);
+        String statusLine = inputBuffer.readUntil((byte) '\r', 1);
         IncomingHttpRequest request = new IncomingHttpRequest();
         parseRequestLine(statusLine, request);
-        statusLine = readLine(inputStream);
+        statusLine = inputBuffer.readUntil((byte) '\r', 1);
         while (!statusLine.equals("")) {
             String name;
             String value;
@@ -48,23 +50,21 @@ public class IncomingHttpRequest extends DefaultHttpRequest {
             } else {
                 request.header(name, value);
             }
-            statusLine = readLine(inputStream);
+            statusLine = inputBuffer.readUntil((byte) '\r', 1);
         }
         if(!request.method().equalsIgnoreCase(Http.GET) && request.hasHeader("Content-Length")) {
             int length = Integer.parseInt(request.header("Content-Length").value());
             if(length == 0) {
                 return request;
             }
-            byte[] entity = new byte[length];
-            inputStream.read(entity, 0, length);
-            request.entity(entity);
+            request.entity(inputBuffer.get(length));
         }
         return request;
     }
 
     @NotNull
     private static String readLine(InputStream inputStream) {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        String line = "";
         log.debug("Reading line for HTTP head");
         int read;
         try {
@@ -81,13 +81,13 @@ public class IncomingHttpRequest extends DefaultHttpRequest {
                     log.warn("Received possibly malformed HTTP Request");
                     break;
                 }
-                byteArrayOutputStream.write(read);
+                line += (char) read;
             }
         } catch (IOException e) {
             log.warn("Exception while reading line from input", e);
         }
-        log.debug("Read: " + byteArrayOutputStream.toString());
-        return byteArrayOutputStream.toString().trim();
+        log.debug("Read: " + line);
+        return line.trim();
     }
 
     private static void parseRequestLine(String line, IncomingHttpRequest httpRequest) {

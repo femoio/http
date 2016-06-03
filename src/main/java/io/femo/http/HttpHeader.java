@@ -28,4 +28,8 @@ public class HttpHeader {
     public void value(String value) {
         this.value = value;
     }
+
+    public int asInt() {
+        return Integer.parseInt(value());
+    }
 }
