@@ -32,4 +32,22 @@ public class HttpHeader {
     public int asInt() {
         return Integer.parseInt(value());
     }
+
+    public boolean equals(Object o) {
+        if(String.valueOf(o).equals(value)) {
+            return true;
+        }
+        if(o != null && o instanceof HttpHeader) {
+            if(this == o) {
+                return true;
+            } else if (this.name.equals(((HttpHeader) o).name) && this.value.equals(((HttpHeader) o).value)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public String toString() {
+        return value();
+    }
 }

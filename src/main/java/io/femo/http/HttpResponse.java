@@ -10,6 +10,11 @@ import java.util.Collection;
 public abstract class HttpResponse {
 
     public abstract HttpResponse status(StatusCode statusCode);
+
+    public HttpResponse status(int status) {
+        return status(StatusCode.find(status));
+    }
+
     public abstract HttpResponse entity(String entity);
     public abstract HttpResponse entity(byte[] entity);
     public abstract HttpResponse entity(InputStream inputStream);

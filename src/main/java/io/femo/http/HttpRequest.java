@@ -50,6 +50,15 @@ public abstract class HttpRequest {
     public abstract HttpHeader header(String name);
     public abstract boolean hasHeader(String name);
 
+    public boolean hasHeaders(String ... names) {
+        for (String name :
+                names) {
+            if (!hasHeader(name))
+                return false;
+        }
+        return true;
+    }
+
 
     public HttpRequest contentType(String contentType) {
         return header("Content-Type", contentType);

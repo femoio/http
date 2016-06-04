@@ -4,6 +4,7 @@ import io.femo.http.HttpRequest;
 import io.femo.http.drivers.DefaultHttpResponse;
 import io.femo.http.drivers.IncomingHttpRequest;
 import io.femo.http.helper.Http;
+import io.femo.http.helper.HttpSocketOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -110,6 +111,8 @@ public class HttpServerThread extends Thread {
         public void run() {
             try {
                 long start = System.currentTimeMillis();
+                HttpSocketOptions httpSocketOptions = new HttpSocketOptions();
+                Http.get().add(httpSocketOptions);
                 DefaultHttpResponse response = new DefaultHttpResponse();
                 HttpRequest httpRequest = IncomingHttpRequest.readFromStream(socket.getInputStream());
                 Http.remote(socket.getRemoteSocketAddress());
@@ -122,7 +125,8 @@ public class HttpServerThread extends Thread {
                 log.debug("Writing {} bytes to {}", byteArrayOutputStream.size(), socket.getRemoteSocketAddress().toString());
                 byteArrayOutputStream.writeTo(socket.getOutputStream());
                 socket.getOutputStream().flush();
-                socket.close();
+                if(httpSocketOptions.isClose())
+                    socket.close();
                 log.info("Took {} ms to handle request", (System.currentTimeMillis() - start));
                 Http.get().reset();
             } catch (IOException e) {

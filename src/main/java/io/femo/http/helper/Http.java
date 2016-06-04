@@ -80,4 +80,10 @@ public class Http {
             return null;
         }
     }
+
+    public static void keepOpen() {
+        if(Thread.currentThread() instanceof PlugableObject) {
+            ((HttpSocketOptions)((PlugableObject) Thread.currentThread()).getFirst(HttpSocketOptions.class).get()).setClose(false);
+        }
+    }
 }

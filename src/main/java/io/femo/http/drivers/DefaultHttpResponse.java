@@ -125,7 +125,7 @@ public class DefaultHttpResponse extends HttpResponse {
             stream.write(entity, 0, entity.length);
             stream.print("\r\n");
         }
-        stream.print("\r\n");
+        //stream.print("\r\n");
     }
 
     public String statusLine() {
