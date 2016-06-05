@@ -24,6 +24,12 @@ public class HttpServerTest {
     @BeforeClass
     public static void setUp() throws Exception {
         Http.installDriver(new DefaultDriver());
+        HttpRouter router = Http.router()
+                .get("/default", (req, res) -> {
+                    res.entity("body, html {font-family: \"Arial\";}");
+                    res.header("Content-Type", "text/css");
+                    return true;
+                });
         httpServer = Http.server(8080)
                 .get("/", ((request, response) -> {
                     response.entity("Did it!");
@@ -33,6 +39,7 @@ public class HttpServerTest {
                     response.entity(request.entityBytes());
                     return true;
                 })
+                .use("/style", router)
                 .after((request, response) -> {
                     System.out.printf("%-10s %s - %s byte(s)\n", request.method(), request.path(),
                             response.hasHeader("Content-Length") ? response.header("Content-Length").value() : " --");
@@ -61,6 +68,15 @@ public class HttpServerTest {
         assertNotNull(response);
         assertEquals(200, response.statusCode());
         assertEquals("This is test!", response.responseString());
+    }
+
+    @Test
+    public void testStyle() throws Exception {
+        HttpResponse response = Http.get("http://localhost:8080/style/default").response();
+        assertNotNull(response);
+        assertEquals(200, response.statusCode());
+        assertEquals("text/css", response.header("Content-Type").value());
+        assertEquals("body, html {font-family: \"Arial\";}", response.responseString());
     }
 
     @AfterClass

@@ -1,56 +1,39 @@
 package io.femo.http.drivers;
 
 import io.femo.http.*;
-import io.femo.http.drivers.server.*;
-
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.TimeZone;
+import io.femo.http.drivers.server.HttpHandlerHandle;
+import io.femo.http.drivers.server.HttpHandlerStack;
+import io.femo.http.drivers.server.HttpMiddlewareHandle;
+import io.femo.http.drivers.server.HttpRouterHandle;
 
 import static io.femo.http.HttpRoutable.joinPaths;
 
 /**
- * Created by felix on 2/24/16.
+ * Created by Felix Resch on 29-Apr-16.
  */
-public class DefaultHttpServer implements HttpServer {
+public class DefaultHttpRouter implements HttpRouter {
 
-    private int port;
-    private boolean ssl;
-
+    private String parentPath;
     private HttpHandlerStack httpHandlerStack;
 
-    private HttpServerThread serverThread;
-
-    public DefaultHttpServer(int port, boolean ssl) {
-        this.port = port;
-        this.ssl = ssl;
+    public DefaultHttpRouter() {
         this.httpHandlerStack = new HttpHandlerStack();
-        use((HttpMiddleware) (req, res) -> res.header("Date", ZonedDateTime.now(ZoneId.of("UTC")).format(DateTimeFormatter.RFC_1123_DATE_TIME)));
     }
 
     @Override
-    public HttpServer start() {
-        use((request, response) -> {
-            response.status(StatusCode.NOT_FOUND);
-            response.entity("Could not find resource at " + request.method().toUpperCase() + " " + request.path());
-            return true;
-        });
-        this.serverThread = new HttpServerThread(httpHandlerStack);
-        serverThread.setPort(port);
-        serverThread.start();
+    public HttpRouter parentPath(String path) {
+        this.parentPath = path;
+        httpHandlerStack.parentPath(path);
         return this;
     }
 
     @Override
-    public HttpServer stop() {
-        this.serverThread.interrupt();
-        return this;
+    public boolean handle(HttpRequest request, HttpResponse response) throws HttpHandleException {
+        return httpHandlerStack.handle(request, response);
     }
 
     @Override
-    public HttpServer use(HttpMiddleware handler) {
+    public HttpRouter use(HttpMiddleware handler) {
         HttpMiddlewareHandle handle = new HttpMiddlewareHandle();
         handle.setHttpMiddleware(handler);
         httpHandlerStack.submit(handle);
@@ -58,7 +41,7 @@ public class DefaultHttpServer implements HttpServer {
     }
 
     @Override
-    public HttpServer use(String path, HttpMiddleware handler) {
+    public HttpRouter use(String path, HttpMiddleware handler) {
         HttpMiddlewareHandle handle = new HttpMiddlewareHandle();
         handle.setPath(path);
         handle.setHttpMiddleware(handler);
@@ -67,10 +50,10 @@ public class DefaultHttpServer implements HttpServer {
     }
 
     @Override
-    public HttpServer use(HttpHandler handler) {
+    public HttpRouter use(HttpHandler handler) {
         if(handler instanceof HttpRouter) {
             HttpRouterHandle handle = new HttpRouterHandle();
-            ((HttpRouter) handler).parentPath("/");
+            ((HttpRouter) handler).parentPath(parentPath);
             handle.setRouter((HttpRouter) handler);
             httpHandlerStack.submit(handle);
         } else {
@@ -82,10 +65,10 @@ public class DefaultHttpServer implements HttpServer {
     }
 
     @Override
-    public HttpServer use(String path, HttpHandler httpHandler) {
+    public HttpRouter use(String path, HttpHandler httpHandler) {
         if(httpHandler instanceof HttpRouter) {
             HttpRouterHandle handle = new HttpRouterHandle();
-            ((HttpRouter) httpHandler).parentPath(joinPaths("/", path));
+            ((HttpRouter) httpHandler).parentPath(joinPaths(parentPath, path));
             handle.setRouter((HttpRouter) httpHandler);
             httpHandlerStack.submit(handle);
         } else {
@@ -98,7 +81,7 @@ public class DefaultHttpServer implements HttpServer {
     }
 
     @Override
-    public HttpServer use(String method, String path, HttpHandler httpHandler) {
+    public HttpRouter use(String method, String path, HttpHandler httpHandler) {
         if(httpHandler instanceof HttpRouter) {
             return this;
         }
@@ -111,7 +94,7 @@ public class DefaultHttpServer implements HttpServer {
     }
 
     @Override
-    public HttpServer after(HttpMiddleware middleware) {
+    public HttpRouter after(HttpMiddleware middleware) {
         httpHandlerStack.submitAfter(middleware);
         return this;
     }
@@ -120,10 +103,4 @@ public class DefaultHttpServer implements HttpServer {
     public boolean matches(HttpRequest httpRequest) {
         return httpHandlerStack.matches(httpRequest);
     }
-
-    @Override
-    public boolean ready() {
-        return this.serverThread.ready();
-    }
-
 }

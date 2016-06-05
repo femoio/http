@@ -3,6 +3,8 @@ package io.femo.http.drivers.server;
 import io.femo.http.HttpRequest;
 import io.femo.http.drivers.DefaultHttpResponse;
 import io.femo.http.drivers.IncomingHttpRequest;
+import io.femo.http.helper.Http;
+import io.femo.http.helper.HttpSocketOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,9 +14,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * Created by Felix Resch on 25-Apr-16.
@@ -29,10 +29,13 @@ public class HttpServerThread extends Thread {
     private boolean ready = false;
     private final Object lock = new Object();
 
+    private ConcurrentLinkedQueue<Future<?>> futures;
+
     private ExecutorService executorService;
 
     public HttpServerThread(HttpHandlerStack httpHandlerStack) {
         this.httpHandlerStack = httpHandlerStack;
+        this.futures = new ConcurrentLinkedQueue<>();
         setName("HTTP-" + port);
     }
 
@@ -49,14 +52,14 @@ public class HttpServerThread extends Thread {
             log.warn("Could not set timeout. Shutdown may lag a bit...", e);
         }
         log.debug("Starting Executor Service");
-        executorService = Executors.newCachedThreadPool();
+        executorService = Executors.newCachedThreadPool(new HttpThreadFactory(port));
         while (!isInterrupted()) {
             synchronized (lock) {
                 this.ready = true;
             }
             try {
                 Socket socket = serverSocket.accept();
-                executorService.submit(new SocketHandler(socket));
+                futures.add(executorService.submit(new SocketHandler(socket)));
             } catch (SocketTimeoutException e) {
                 log.debug("Socket timeout");
             } catch (IOException e) {
@@ -107,15 +110,25 @@ public class HttpServerThread extends Thread {
         @Override
         public void run() {
             try {
+                long start = System.currentTimeMillis();
+                HttpSocketOptions httpSocketOptions = new HttpSocketOptions();
+                Http.get().add(httpSocketOptions);
                 DefaultHttpResponse response = new DefaultHttpResponse();
                 HttpRequest httpRequest = IncomingHttpRequest.readFromStream(socket.getInputStream());
+                Http.remote(socket.getRemoteSocketAddress());
+                Http.request(httpRequest);
+                Http.response(response);
+                Http.get().add(socket);
                 httpHandlerStack.handle(httpRequest, response);
                 ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
                 response.print(byteArrayOutputStream);
                 log.debug("Writing {} bytes to {}", byteArrayOutputStream.size(), socket.getRemoteSocketAddress().toString());
                 byteArrayOutputStream.writeTo(socket.getOutputStream());
                 socket.getOutputStream().flush();
-                socket.close();
+                if(httpSocketOptions.isClose())
+                    socket.close();
+                log.info("Took {} ms to handle request", (System.currentTimeMillis() - start));
+                Http.get().reset();
             } catch (IOException e) {
                 log.warn("Socket Error", e);
             }

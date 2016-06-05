@@ -30,7 +30,7 @@ public class AsyncExecutorHttpTest {
     @Test
     public void testHttpGet() throws Exception {
         final Waiter waiter = new Waiter();
-        Http.get(new URL("http://httpbin.org/get")).execute(new HttpResponseCallback() {
+        Http.get(new URL("http://" + TestConstants.HTTP.HOST + "/get")).execute(new HttpResponseCallback() {
             @Override
             public void receivedResponse(HttpResponse response) {
                 assertEquals("Status", 200, response.status().status());
@@ -48,7 +48,7 @@ public class AsyncExecutorHttpTest {
     @Test
     public void testHttpGetWithParameters() throws Exception {
         final Waiter waiter = new Waiter();
-        Http.get(new URL("http://httpbin.org/get?param=2")).execute(new HttpResponseCallback() {
+        Http.get(new URL("http://" + TestConstants.HTTP.HOST + "/get?param=2")).execute(new HttpResponseCallback() {
             @Override
             public void receivedResponse(HttpResponse response) {
                 assertEquals("Status", 200, response.status().status());
@@ -70,7 +70,7 @@ public class AsyncExecutorHttpTest {
     @Test
     public void testHttpStatusParsing() throws Exception {
         final Waiter waiter1 = new Waiter();
-        Http.get("http://httpbin.org/status/200").execute(new HttpResponseCallback() {
+        Http.get("http://" + TestConstants.HTTP.HOST + "/status/200").execute(new HttpResponseCallback() {
             @Override
             public void receivedResponse(HttpResponse response) {
                 assertEquals("HTTP OK Statuscode", 200, response.statusCode());
@@ -79,7 +79,7 @@ public class AsyncExecutorHttpTest {
             }
         });
         final Waiter waiter2 = new Waiter();
-        Http.get("http://httpbin.org/status/404").execute(new HttpResponseCallback() {
+        Http.get("http://" + TestConstants.HTTP.HOST + "/status/404").execute(new HttpResponseCallback() {
             @Override
             public void receivedResponse(HttpResponse response) {
                 assertEquals("HTTP Not Found Statuscode", 404, response.statusCode());
@@ -88,7 +88,7 @@ public class AsyncExecutorHttpTest {
             }
         });
         final Waiter waiter3 = new Waiter();
-        Http.get("http://httpbin.org/status/500").execute(new HttpResponseCallback() {
+        Http.get("http://" + TestConstants.HTTP.HOST + "/status/500").execute(new HttpResponseCallback() {
             @Override
             public void receivedResponse(HttpResponse response) {
                 assertEquals("HTTP Internal Server Error Statuscode", 500, response.statusCode());
@@ -116,7 +116,7 @@ public class AsyncExecutorHttpTest {
     @Test
     public void testHttpPost() throws Exception {
         final Waiter waiter = new Waiter();
-        Http.get(new URL("http://httpbin.org/post")).method("POST").execute(new HttpResponseCallback() {
+        Http.get(new URL("http://" + TestConstants.HTTP.HOST + "/post")).method("POST").execute(new HttpResponseCallback() {
             @Override
             public void receivedResponse(HttpResponse response) {
                 assertEquals("Status", 200, response.status().status());
@@ -134,7 +134,7 @@ public class AsyncExecutorHttpTest {
     @Test
     public void testHttpPostWithArguments() throws Exception {
         final Waiter waiter = new Waiter();
-        Http.post("http://httpbin.org/post").data("param", "2").execute(new HttpResponseCallback() {
+        Http.post("http://" + TestConstants.HTTP.HOST + "/post").data("param", "2").execute(new HttpResponseCallback() {
             @Override
             public void receivedResponse(HttpResponse response) {
                 assertEquals("Status", 200, response.statusCode());
@@ -156,7 +156,7 @@ public class AsyncExecutorHttpTest {
     @Test
     public void testHttpPostWithData() throws Exception {
         final Waiter waiter = new Waiter();
-        Http.post("http://httpbin.org/post").entity("Value is 2").contentType("text/plain").execute(new HttpResponseCallback() {
+        Http.post("http://" + TestConstants.HTTP.HOST + "/post").entity("Value is 2").contentType("text/plain").execute(new HttpResponseCallback() {
             @Override
             public void receivedResponse(HttpResponse response) {
                 assertEquals("Status", 200, response.statusCode());
@@ -177,7 +177,7 @@ public class AsyncExecutorHttpTest {
     @Test
     public void testGetWithCookies() throws Exception {
         final Waiter waiter = new Waiter();
-        Http.get(new URL("http://httpbin.org/cookies")).cookie("Session", "abcd1234").execute(new HttpResponseCallback() {
+        Http.get(new URL("http://" + TestConstants.HTTP.HOST + "/cookies")).cookie("Session", "abcd1234").execute(new HttpResponseCallback() {
             @Override
             public void receivedResponse(HttpResponse response) {
                 JsonObject content = parser.parse(response.responseString()).getAsJsonObject();
@@ -198,7 +198,7 @@ public class AsyncExecutorHttpTest {
     @Test
     public void testBasicAuthentication() throws Exception {
         final Waiter waiter = new Waiter();
-        Http.get("http://httpbin.org/basic-auth/test/test").basicAuth("test", "test").execute(new HttpResponseCallback() {
+        Http.get("http://" + TestConstants.HTTP.HOST + "/basic-auth/test/test").basicAuth("test", "test").execute(new HttpResponseCallback() {
             @Override
             public void receivedResponse(HttpResponse response) {
                 assertNotNull(response);

@@ -5,6 +5,7 @@ import io.femo.http.events.HttpEventManager;
 import io.femo.http.events.HttpEventType;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintStream;
 
 /**
@@ -29,6 +30,8 @@ public abstract class HttpRequest {
 
     public abstract HttpRequest using(Driver driver);
 
+    public abstract HttpRequest pipe(OutputStream outputStream);
+
     public abstract String method();
     public abstract HttpCookie[] cookies();
     public abstract HttpHeader[] headers();
@@ -46,6 +49,15 @@ public abstract class HttpRequest {
 
     public abstract HttpHeader header(String name);
     public abstract boolean hasHeader(String name);
+
+    public boolean hasHeaders(String ... names) {
+        for (String name :
+                names) {
+            if (!hasHeader(name))
+                return false;
+        }
+        return true;
+    }
 
 
     public HttpRequest contentType(String contentType) {

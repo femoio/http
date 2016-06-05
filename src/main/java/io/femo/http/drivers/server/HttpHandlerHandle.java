@@ -4,6 +4,7 @@ import io.femo.http.HttpHandleException;
 import io.femo.http.HttpHandler;
 import io.femo.http.HttpRequest;
 import io.femo.http.HttpResponse;
+import static io.femo.http.HttpRoutable.joinPaths;
 
 /**
  * Created by felix on 4/25/16.
@@ -55,5 +56,11 @@ public class HttpHandlerHandle implements HttpHandle {
     @Override
     public boolean handle(HttpRequest request, HttpResponse response) throws HttpHandleException {
         return handler.handle(request, response);
+    }
+
+    @Override
+    public void parentPath(String path) {
+        if(this.path != null)
+            this.path = joinPaths(path, this.path);
     }
 }

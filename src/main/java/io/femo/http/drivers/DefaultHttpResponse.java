@@ -1,15 +1,12 @@
 package io.femo.http.drivers;
 
-import io.femo.http.HttpCookie;
-import io.femo.http.HttpHeader;
-import io.femo.http.HttpResponse;
-import io.femo.http.StatusCode;
+import io.femo.http.*;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.nio.ByteBuffer;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,6 +22,8 @@ public class DefaultHttpResponse extends HttpResponse {
     private Map<String, HttpHeader> headers;
     private Map<String, HttpCookie> cookies;
     private byte[] entity;
+
+    private InputStream entityStream;
 
     public DefaultHttpResponse() {
         this.headers = new HashMap<>();
@@ -55,6 +54,18 @@ public class DefaultHttpResponse extends HttpResponse {
         return this;
     }
 
+    @Override
+    public HttpResponse entity(InputStream inputStream) {
+        if(!hasHeader("Content-Type")) {
+            header("Content-Type", "text/plain");
+        }
+        if(statusCode == null) {
+            statusCode = StatusCode.OK;
+        }
+        this.entityStream = inputStream;
+        return this;
+    }
+
     public boolean hasHeader(String name) {
         return headers.containsKey(name);
     }
@@ -81,6 +92,11 @@ public class DefaultHttpResponse extends HttpResponse {
     }
 
     @Override
+    public Collection<HttpCookie> cookies() {
+        return cookies.values();
+    }
+
+    @Override
     public void print(OutputStream outputStream) {
         PrintStream stream = new PrintStream(outputStream);
         if(statusCode == null) {
@@ -94,11 +110,22 @@ public class DefaultHttpResponse extends HttpResponse {
             stream.printf("Set-Cookie: %s\r\n", cookie.value());
         }
         stream.print("\r\n");
-        if (entity != null && entity.length > 0) {
+        if(entityStream != null) {
+            byte[] buffer = new byte[1024];
+            int read;
+            try {
+                while ((read = entityStream.read(buffer, 0, 1024)) > 0) {
+                    stream.write(buffer, 0, read);
+                }
+                entityStream.close();
+            } catch (IOException e) {
+                log.error("Could not read entity stream", e);
+            }
+        } else if (entity != null && entity.length > 0) {
             stream.write(entity, 0, entity.length);
             stream.print("\r\n");
         }
-        stream.print("\r\n");
+        //stream.print("\r\n");
     }
 
     public String statusLine() {
@@ -125,11 +152,12 @@ public class DefaultHttpResponse extends HttpResponse {
         return headers.get(name);
     }
 
-    public static DefaultHttpResponse read(InputStream inputStream) throws IOException {
-        String statusLine = readLine(inputStream);
+    public static DefaultHttpResponse read(InputStream inputStream, OutputStream pipe) throws IOException {
+        InputBuffer inputBuffer = new InputBuffer(inputStream);
+        String statusLine = inputBuffer.readUntil((byte) '\r', 1);
         DefaultHttpResponse response = new DefaultHttpResponse();
         response.statusCode = StatusCode.constructFromHttpStatusLine(statusLine);
-        statusLine = readLine(inputStream);
+        statusLine = inputBuffer.readUntil((byte) '\r', 1);
         while (statusLine != null) {
             if(statusLine.equals(""))
                 break;
@@ -148,13 +176,15 @@ public class DefaultHttpResponse extends HttpResponse {
             statusLine = readLine(inputStream);
         }
         if(response.hasHeader("Content-Length")) {
-            int length = Integer.parseInt(response.header("Content-Length").value());
-            if(length == 0) {
-                return response;
+            int length = response.header("Content-Length").asInt();
+            if(pipe != null) {
+                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                inputBuffer.pipe(length, pipe, byteArrayOutputStream);
+                pipe.close();
+                response.entity(byteArrayOutputStream.toByteArray());
+            } else {
+                response.entity(inputBuffer.get(length));
             }
-            byte[] entity = new byte[length];
-            inputStream.read(entity, 0, length);
-            response.entity = entity;
         } else {
             log.debug("No content-length received. Treating entity as non existent!");
             /*byte buffer[] = new byte[1024];

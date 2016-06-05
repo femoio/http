@@ -12,4 +12,6 @@ public interface HttpHandle {
     boolean matches(HttpRequest request);
 
     boolean handle(HttpRequest request, HttpResponse response) throws HttpHandleException;
+
+    void parentPath(String path);
 }
