@@ -6,7 +6,7 @@
 
     <groupId>io.femo</groupId>
     <artifactId>http</artifactId>
-    <version>0.0.2-SNAPSHOT</version>
+    <version>0.0.2</version>
     <packaging>jar</packaging>
 
     <name>FeMoIO Http</name>
@@ -173,10 +173,9 @@
             <version>15.0</version>
         </dependency>
         <dependency>
-            <groupId>org.xjs</groupId>
+            <groupId>io.femo</groupId>
             <artifactId>dynamic</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-            <scope>provided</scope>
+            <version>0.0.1</version>
         </dependency>
         <dependency>
             <groupId>com.jayway.awaitility</groupId>

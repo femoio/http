@@ -1,6 +1,6 @@
 package io.femo.http.drivers.server;
 
-import org.xjs.dynamic.PlugableObject;
+import org.xjs.dynamic.Pluggable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Created by Felix Resch on 29-Apr-16.
  */
-public class HttpThread extends Thread implements PlugableObject<HttpThread> {
+public class HttpThread extends Thread implements Pluggable<HttpThread> {
 
     private List<Object> children;
 

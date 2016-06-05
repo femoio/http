@@ -3,7 +3,7 @@ package io.femo.http.helper;
 import io.femo.http.HttpRequest;
 import io.femo.http.HttpResponse;
 import org.jetbrains.annotations.Nullable;
-import org.xjs.dynamic.PlugableObject;
+import org.xjs.dynamic.Pluggable;
 
 import java.net.Socket;
 import java.net.SocketAddress;
@@ -17,8 +17,8 @@ public class Http {
 
     @Nullable
     public static HttpResponse response() {
-        if(Thread.currentThread() instanceof PlugableObject) {
-            Optional<HttpResponse> httpResponse = ((PlugableObject) Thread.currentThread()).getFirst(HttpResponse.class);
+        if(Thread.currentThread() instanceof Pluggable) {
+            Optional<HttpResponse> httpResponse = ((Pluggable) Thread.currentThread()).getFirst(HttpResponse.class);
             if(httpResponse.isPresent()) {
                 return httpResponse.get();
             }
@@ -28,8 +28,8 @@ public class Http {
 
     @Nullable
     public static HttpRequest request() {
-        if(Thread.currentThread() instanceof PlugableObject) {
-            Optional<HttpRequest> httpRequest = ((PlugableObject) Thread.currentThread()).getFirst(HttpRequest.class);
+        if(Thread.currentThread() instanceof Pluggable) {
+            Optional<HttpRequest> httpRequest = ((Pluggable) Thread.currentThread()).getFirst(HttpRequest.class);
             if(httpRequest.isPresent()) {
                 return httpRequest.get();
             }
@@ -38,25 +38,25 @@ public class Http {
     }
 
     public static void response(HttpResponse response) {
-        if(Thread.currentThread() instanceof PlugableObject) {
-            PlugableObject plugableObject = (PlugableObject) Thread.currentThread();
-            plugableObject.removeAll(HttpResponse.class);
-            plugableObject.add(response);
+        if(Thread.currentThread() instanceof Pluggable) {
+            Pluggable Pluggable = (Pluggable) Thread.currentThread();
+            Pluggable.removeAll(HttpResponse.class);
+            Pluggable.add(response);
         }
     }
 
     public static void request(HttpRequest request) {
-        if(Thread.currentThread() instanceof PlugableObject) {
-            PlugableObject plugableObject = (PlugableObject) Thread.currentThread();
-            plugableObject.removeAll(HttpRequest.class);
-            plugableObject.add(request);
+        if(Thread.currentThread() instanceof Pluggable) {
+            Pluggable Pluggable = (Pluggable) Thread.currentThread();
+            Pluggable.removeAll(HttpRequest.class);
+            Pluggable.add(request);
         }
     }
 
     @Nullable
     public static SocketAddress remote() {
-        if(Thread.currentThread() instanceof PlugableObject) {
-            Optional<SocketAddress> socketAddress = ((PlugableObject) Thread.currentThread()).getFirst(SocketAddress.class);
+        if(Thread.currentThread() instanceof Pluggable) {
+            Optional<SocketAddress> socketAddress = ((Pluggable) Thread.currentThread()).getFirst(SocketAddress.class);
             if(socketAddress.isPresent()) {
                 return socketAddress.get();
             }
@@ -65,25 +65,25 @@ public class Http {
     }
 
     public static void remote(SocketAddress socketAddress) {
-        if(Thread.currentThread() instanceof PlugableObject) {
-            PlugableObject plugableObject = (PlugableObject) Thread.currentThread();
-            plugableObject.removeAll(SocketAddress.class);
-            plugableObject.add(socketAddress);
+        if(Thread.currentThread() instanceof Pluggable) {
+            Pluggable Pluggable = (Pluggable) Thread.currentThread();
+            Pluggable.removeAll(SocketAddress.class);
+            Pluggable.add(socketAddress);
         }
     }
 
     @Nullable
-    public static PlugableObject get() {
-        if(Thread.currentThread() instanceof PlugableObject) {
-            return (PlugableObject) Thread.currentThread();
+    public static Pluggable get() {
+        if(Thread.currentThread() instanceof Pluggable) {
+            return (Pluggable) Thread.currentThread();
         } else {
             return null;
         }
     }
 
     public static void keepOpen() {
-        if(Thread.currentThread() instanceof PlugableObject) {
-            ((HttpSocketOptions)((PlugableObject) Thread.currentThread()).getFirst(HttpSocketOptions.class).get()).setClose(false);
+        if(Thread.currentThread() instanceof Pluggable) {
+            ((HttpSocketOptions)((Pluggable) Thread.currentThread()).getFirst(HttpSocketOptions.class).get()).setClose(false);
         }
     }
 }
