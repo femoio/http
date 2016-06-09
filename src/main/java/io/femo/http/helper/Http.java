@@ -1,7 +1,10 @@
 package io.femo.http.helper;
 
+import io.femo.http.Driver;
+import io.femo.http.HttpContext;
 import io.femo.http.HttpRequest;
 import io.femo.http.HttpResponse;
+import io.femo.http.drivers.server.HttpThread;
 import org.jetbrains.annotations.Nullable;
 import org.xjs.dynamic.Pluggable;
 
@@ -15,10 +18,17 @@ import java.util.concurrent.ThreadFactory;
  */
 public class Http {
 
+    private static ThreadLocal<HttpContext> context = new ThreadLocal<HttpContext>() {
+        @Override
+        protected HttpContext initialValue() {
+            return new DefaultHttpContext();
+        }
+    };
+
     @Nullable
     public static HttpResponse response() {
         if(Thread.currentThread() instanceof Pluggable) {
-            Optional<HttpResponse> httpResponse = ((Pluggable) Thread.currentThread()).getFirst(HttpResponse.class);
+            Optional<HttpResponse> httpResponse = ((Pluggable<HttpThread>) Thread.currentThread()).getFirst(HttpResponse.class);
             if(httpResponse.isPresent()) {
                 return httpResponse.get();
             }
@@ -29,7 +39,7 @@ public class Http {
     @Nullable
     public static HttpRequest request() {
         if(Thread.currentThread() instanceof Pluggable) {
-            Optional<HttpRequest> httpRequest = ((Pluggable) Thread.currentThread()).getFirst(HttpRequest.class);
+            Optional<HttpRequest> httpRequest = ((Pluggable<HttpThread>) Thread.currentThread()).getFirst(HttpRequest.class);
             if(httpRequest.isPresent()) {
                 return httpRequest.get();
             }
@@ -72,10 +82,18 @@ public class Http {
         }
     }
 
+    public static HttpContext context() {
+        return context.get();
+    }
+
+    public static void useDriver(Driver driver) {
+        context.get().useDriver(driver);
+    }
+
     @Nullable
-    public static Pluggable get() {
+    public static Pluggable<HttpThread> get() {
         if(Thread.currentThread() instanceof Pluggable) {
-            return (Pluggable) Thread.currentThread();
+            return (Pluggable<HttpThread>) Thread.currentThread();
         } else {
             return null;
         }
@@ -84,6 +102,12 @@ public class Http {
     public static void keepOpen() {
         if(Thread.currentThread() instanceof Pluggable) {
             ((HttpSocketOptions)((Pluggable) Thread.currentThread()).getFirst(HttpSocketOptions.class).get()).setClose(false);
+        }
+    }
+
+    public static void callback(HandledCallback handledCallback) {
+        if(Thread.currentThread() instanceof Pluggable) {
+            ((HttpSocketOptions)((Pluggable) Thread.currentThread()).getFirst(HttpSocketOptions.class).get()).setHandledCallback(handledCallback);
         }
     }
 }

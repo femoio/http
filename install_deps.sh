@@ -2,5 +2,5 @@
 
 git clone https://gitlab.com/xjs/dynamic.git dynamic
 cd dynamic
-mvn install
+mvn install -Dmaven.javadoc.skip=true -DskipTests=true -B -V
 cd ..

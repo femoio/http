@@ -1,6 +1,7 @@
 package io.femo.http.drivers;
 
 import io.femo.http.*;
+import io.femo.http.HttpCookie;
 import io.femo.http.events.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,10 +11,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.Socket;
-import java.net.URL;
-import java.net.URLEncoder;
+import java.net.*;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
 
@@ -169,7 +167,11 @@ public class DefaultHttpRequest extends HttpRequest {
                 writeUrlFormEncoded();
             }
         }
-        output.printf("%s %s %s\r\n", method.toUpperCase(), url.getPath() + (url.getQuery() != null ? "?" + url.getQuery() : ""), "HTTP/1.1");
+        if(url == null && path() != null) {
+            output.printf("%s %s %s\r\n", method.toUpperCase(), path(), "HTTP/1.1");
+        } else {
+            output.printf("%s %s %s\r\n", method.toUpperCase(), url.getPath() + (url.getQuery() != null ? "?" + url.getQuery() : ""), "HTTP/1.1");
+        }
         for (HttpHeader header : headers.values()) {
             output.printf("%s: %s\r\n", header.name(), header.value());
         }

@@ -1,10 +1,15 @@
 package io.femo.http;
 
 import io.femo.http.drivers.DefaultDriver;
+import io.femo.http.handlers.FileHandler;
+import org.apache.commons.io.FileUtils;
 import org.junit.*;
 import org.junit.rules.DisableOnDebug;
 import org.junit.rules.TestRule;
 import org.junit.rules.Timeout;
+
+import java.io.File;
+import java.io.PrintStream;
 
 import static org.junit.Assert.*;
 import static com.jayway.awaitility.Awaitility.*;
@@ -39,11 +44,15 @@ public class HttpServerTest {
                     response.entity(request.entityBytes());
                     return true;
                 })
+                .get("/test-res", FileHandler.resource("/test.txt", true, "text/plain"))
+                .get("/test-file", FileHandler.buffered(new File("test.txt"), true, "text/plain"))
                 .use("/style", router)
                 .after((request, response) -> {
                     System.out.printf("%-10s %s - %s byte(s)\n", request.method(), request.path(),
                             response.hasHeader("Content-Length") ? response.header("Content-Length").value() : " --");
                 }).start();
+        PrintStream printStream = new PrintStream("test.txt");
+        printStream.print("Hello World");
         while (!httpServer.ready());
         try {
             Thread.sleep(20);
@@ -79,8 +88,27 @@ public class HttpServerTest {
         assertEquals("body, html {font-family: \"Arial\";}", response.responseString());
     }
 
+    @Test
+    public void testResource() throws Exception {
+        HttpResponse response = Http.get("http://localhost:8080/test-res").response();
+        assertNotNull(response);
+        assertEquals(200, response.statusCode());
+        assertEquals("Hello World", response.responseString());
+        assertEquals("text/plain", response.header("Content-Type").value());
+    }
+
+    @Test
+    public void testFile() throws Exception {
+        HttpResponse response = Http.get("http://localhost:8080/test-file").response();
+        assertNotNull(response);
+        assertEquals(200, response.statusCode());
+        assertEquals("Hello World", response.responseString());
+        assertEquals("text/plain", response.header("Content-Type").value());
+    }
+
     @AfterClass
     public static void tearDown() throws Exception {
         httpServer.stop();
+        new File("test.txt").deleteOnExit();
     }
 }
