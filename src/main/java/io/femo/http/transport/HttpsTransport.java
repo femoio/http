@@ -1,4 +1,6 @@
-package io.femo.http;
+package io.femo.http.transport;
+
+import io.femo.http.Transport;
 
 import javax.net.SocketFactory;
 import javax.net.ssl.SSLSocketFactory;

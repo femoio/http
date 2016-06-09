@@ -4,9 +4,9 @@ import io.femo.http.events.HttpEventHandler;
 import io.femo.http.events.HttpEventManager;
 import io.femo.http.events.HttpEventType;
 
-import java.io.IOException;
 import java.io.OutputStream;
-import java.io.PrintStream;
+import java.net.URL;
+import java.util.Collection;
 
 /**
  * Created by felix on 9/10/15.
@@ -23,7 +23,7 @@ public abstract class HttpRequest {
     public abstract HttpRequest execute(HttpResponseCallback callback);
     public abstract HttpRequest transport(Transport transport);
     public abstract HttpRequest version(HttpVersion version);
-    public abstract HttpRequest print(PrintStream printStream);
+    public abstract HttpRequest print(OutputStream outputStream);
     public abstract HttpRequest data(String key, String value);
     public abstract HttpRequest eventManager(HttpEventManager manager);
     public abstract HttpRequest event(HttpEventType type, HttpEventHandler handler);
@@ -32,13 +32,16 @@ public abstract class HttpRequest {
 
     public abstract HttpRequest pipe(OutputStream outputStream);
 
+    public abstract HttpRequest prepareEntity();
+
     public abstract String method();
-    public abstract HttpCookie[] cookies();
-    public abstract HttpHeader[] headers();
+    public abstract Collection<HttpCookie> cookies();
+    public abstract Collection<HttpHeader> headers();
     public abstract byte[] entityBytes();
     public abstract String entityString();
     public abstract boolean checkAuth(String username, String password);
     public abstract HttpResponse response();
+    public abstract HttpRequest use(HttpTransport httpTransport);
 
     public abstract Transport transport();
     public abstract String requestLine();
@@ -69,4 +72,6 @@ public abstract class HttpRequest {
     }
 
     public abstract String path();
+
+    public abstract URL url();
 }

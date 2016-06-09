@@ -1,5 +1,8 @@
 package io.femo.http;
 
+import io.femo.http.transport.HttpTransport;
+import io.femo.http.transport.HttpsTransport;
+
 import java.io.IOException;
 import java.net.Socket;
 

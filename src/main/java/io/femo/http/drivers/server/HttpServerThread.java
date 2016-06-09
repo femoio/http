@@ -1,6 +1,7 @@
 package io.femo.http.drivers.server;
 
 import io.femo.http.HttpRequest;
+import io.femo.http.HttpTransport;
 import io.femo.http.drivers.DefaultHttpResponse;
 import io.femo.http.drivers.IncomingHttpRequest;
 import io.femo.http.helper.Http;
@@ -113,7 +114,7 @@ public class HttpServerThread extends Thread {
                 long start = System.currentTimeMillis();
                 Http.get().add(new HttpSocketOptions());
                 DefaultHttpResponse response = new DefaultHttpResponse();
-                HttpRequest httpRequest = IncomingHttpRequest.readFromStream(socket.getInputStream());
+                HttpRequest httpRequest = HttpTransport.def().readRequest(socket.getInputStream());
                 Http.remote(socket.getRemoteSocketAddress());
                 Http.request(httpRequest);
                 Http.response(response);

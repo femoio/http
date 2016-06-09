@@ -39,4 +39,5 @@ public abstract class HttpResponse {
     public abstract void print(OutputStream outputStream);
     public abstract String statusLine();
 
+    public abstract Collection<HttpHeader> headers();
 }
