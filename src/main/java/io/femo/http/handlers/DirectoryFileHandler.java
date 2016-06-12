@@ -11,11 +11,12 @@ import java.io.FileNotFoundException;
 /**
  * Created by felix on 6/11/16.
  */
-public class DirectoryFileHandler implements HttpRoutable<DirectoryFileHandler>, HttpHandler {
+public class DirectoryFileHandler implements HttpRouter {
 
     private File parent;
     private boolean caching;
     private int cacheTime;
+    private String parentPath;
 
     public DirectoryFileHandler(File parent, boolean caching, int cacheTime) {
         this.parent = parent;
@@ -25,7 +26,10 @@ public class DirectoryFileHandler implements HttpRoutable<DirectoryFileHandler>,
 
     @Override
     public boolean handle(HttpRequest request, HttpResponse response) throws HttpHandleException {
-        String path = request.path();
+        if(!request.path().startsWith(parentPath)) {
+            return false;
+        }
+        String path = request.path().replaceFirst(parentPath, "");
         if(path.contains("?")) {
             path = path.substring(0, path.indexOf("?"));
         }
@@ -80,10 +84,19 @@ public class DirectoryFileHandler implements HttpRoutable<DirectoryFileHandler>,
 
     @Override
     public boolean matches(HttpRequest httpRequest) {
-        String path = httpRequest.path();
-        if(path.contains("?")) {
-            path = path.substring(0, path.indexOf("?"));
+        if(!httpRequest.path().startsWith(parentPath)) {
+            return false;
         }
+        String path = httpRequest.path().replaceFirst(parentPath, "");
         return new File(parent, path).exists();
+    }
+
+    @Override
+    public HttpRouter parentPath(String path) {
+        this.parentPath = path;
+        if(this.parentPath.endsWith("/")) {
+            this.parentPath = this.parentPath.substring(0, this.parentPath.length() - 1);
+        }
+        return this;
     }
 }
