@@ -1,6 +1,7 @@
 package io.femo.http;
 
 import io.femo.http.drivers.DefaultDriver;
+import io.femo.http.handlers.DirectoryFileHandler;
 import io.femo.http.handlers.FileHandler;
 import org.apache.commons.io.FileUtils;
 import org.junit.*;
@@ -46,6 +47,7 @@ public class HttpServerTest {
                 })
                 .get("/test-res", FileHandler.resource("/test.txt", true, "text/plain"))
                 .get("/test-file", FileHandler.buffered(new File("test.txt"), true, "text/plain"))
+                .use("/test-dir", new DirectoryFileHandler(new File("testDocs"), false, 0))
                 .use("/style", router)
                 .after((request, response) -> {
                     System.out.printf("%-10s %s - %s byte(s)\n", request.method(), request.path(),
@@ -53,12 +55,21 @@ public class HttpServerTest {
                 }).start();
         PrintStream printStream = new PrintStream("test.txt");
         printStream.print("Hello World");
+        printStream.close();
+        File testDocs = new File("testDocs");
+        if(!testDocs.exists()) {
+            testDocs.mkdir();
+        }
+        printStream = new PrintStream("testDocs/test.txt");
+        printStream.print("Hello World");
+        printStream.close();
         while (!httpServer.ready());
         try {
             Thread.sleep(20);
         } catch (InterruptedException ignored) {
 
         }
+
     }
 
     @Test
@@ -100,6 +111,15 @@ public class HttpServerTest {
     @Test
     public void testFile() throws Exception {
         HttpResponse response = Http.get("http://localhost:8080/test-file").response();
+        assertNotNull(response);
+        assertEquals(200, response.statusCode());
+        assertEquals("Hello World", response.responseString());
+        assertEquals("text/plain", response.header("Content-Type").value());
+    }
+
+    @Test
+    public void testDir() throws Exception {
+        HttpResponse response = Http.get("http://localhost:8080/test-dir/test.txt").response();
         assertNotNull(response);
         assertEquals(200, response.statusCode());
         assertEquals("Hello World", response.responseString());

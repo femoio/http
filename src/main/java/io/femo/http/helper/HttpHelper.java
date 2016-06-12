@@ -5,6 +5,7 @@ import io.femo.http.HttpContext;
 import io.femo.http.HttpRequest;
 import io.femo.http.HttpResponse;
 import io.femo.http.drivers.server.HttpThread;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 import org.xjs.dynamic.Pluggable;
 
@@ -16,9 +17,10 @@ import java.util.concurrent.ThreadFactory;
 /**
  * Created by Felix Resch on 29-Apr-16.
  */
-public class Http {
+public class HttpHelper {
 
     private static ThreadLocal<HttpContext> context = new ThreadLocal<HttpContext>() {
+        @Contract(" -> !null")
         @Override
         protected HttpContext initialValue() {
             return new DefaultHttpContext();

@@ -38,7 +38,7 @@ public class HttpEventManager {
             }
         } else {
             if(!events.containsKey(type)) {
-                events.put(type, new ArrayList<HttpEventHandler>());
+                events.put(type, new ArrayList<>());
             }
             events.get(type).add(handler);
         }

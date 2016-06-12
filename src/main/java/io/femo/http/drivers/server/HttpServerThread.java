@@ -3,8 +3,7 @@ package io.femo.http.drivers.server;
 import io.femo.http.HttpRequest;
 import io.femo.http.HttpTransport;
 import io.femo.http.drivers.DefaultHttpResponse;
-import io.femo.http.drivers.IncomingHttpRequest;
-import io.femo.http.helper.Http;
+import io.femo.http.helper.HttpHelper;
 import io.femo.http.helper.HttpSocketOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -112,27 +111,27 @@ public class HttpServerThread extends Thread {
         public void run() {
             try {
                 long start = System.currentTimeMillis();
-                Http.get().add(new HttpSocketOptions());
+                HttpHelper.get().add(new HttpSocketOptions());
                 DefaultHttpResponse response = new DefaultHttpResponse();
                 HttpRequest httpRequest = HttpTransport.def().readRequest(socket.getInputStream());
-                Http.remote(socket.getRemoteSocketAddress());
-                Http.request(httpRequest);
-                Http.response(response);
-                Http.get().add(socket);
+                HttpHelper.remote(socket.getRemoteSocketAddress());
+                HttpHelper.request(httpRequest);
+                HttpHelper.response(response);
+                HttpHelper.get().add(socket);
                 httpHandlerStack.handle(httpRequest, response);
                 ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
                 response.print(byteArrayOutputStream);
                 log.debug("Writing {} bytes to {}", byteArrayOutputStream.size(), socket.getRemoteSocketAddress().toString());
                 byteArrayOutputStream.writeTo(socket.getOutputStream());
                 socket.getOutputStream().flush();
-                HttpSocketOptions httpSocketOptions = Http.get().getFirst(HttpSocketOptions.class).get();
+                HttpSocketOptions httpSocketOptions = HttpHelper.get().getFirst(HttpSocketOptions.class).get();
                 if(httpSocketOptions.isClose())
                     socket.close();
                 if(httpSocketOptions.hasHandledCallback()) {
                     httpSocketOptions.callHandledCallback();
                 }
                 log.info("Took {} ms to handle request", (System.currentTimeMillis() - start));
-                Http.get().reset();
+                HttpHelper.get().reset();
             } catch (IOException e) {
                 log.warn("Socket Error", e);
             }

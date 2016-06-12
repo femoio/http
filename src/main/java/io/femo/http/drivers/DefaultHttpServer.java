@@ -88,7 +88,7 @@ public class DefaultHttpServer implements HttpServer {
 
     @Override
     public HttpServer use(String path, HttpHandler httpHandler) {
-        if(httpHandler instanceof HttpRouter) {
+        if(httpHandler instanceof HttpRoutable) {
             HttpRouterHandle handle = new HttpRouterHandle();
             ((HttpRouter) httpHandler).parentPath(joinPaths("/", path));
             handle.setRouter((HttpRouter) httpHandler);

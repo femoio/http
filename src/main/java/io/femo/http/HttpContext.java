@@ -8,4 +8,6 @@ public interface HttpContext {
     Base64Driver base64();
 
     void useDriver(Driver driver);
+
+    MimeService mime();
 }

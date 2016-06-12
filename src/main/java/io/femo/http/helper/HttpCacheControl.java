@@ -27,7 +27,7 @@ public final class HttpCacheControl {
      * @return whether the server can respond with a 302 - Not Modified
      */
     public static boolean cacheControl(int maxAge, String eTag) {
-        return cacheControl(Http.request(), Http.response(), maxAge, eTag);
+        return cacheControl(HttpHelper.request(), HttpHelper.response(), maxAge, eTag);
     }
 
     /**

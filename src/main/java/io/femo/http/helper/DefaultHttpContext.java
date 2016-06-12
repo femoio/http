@@ -3,7 +3,9 @@ package io.femo.http.helper;
 import io.femo.http.Base64Driver;
 import io.femo.http.Driver;
 import io.femo.http.HttpContext;
+import io.femo.http.MimeService;
 import io.femo.http.drivers.DefaultBase64Driver;
+import io.femo.http.drivers.DefaultMimeService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +28,9 @@ public class DefaultHttpContext implements HttpContext {
         if(driver.isPresent()) {
             return driver.get();
         } else {
-            return new DefaultBase64Driver();
+            Base64Driver base64Driver = new DefaultBase64Driver();
+            useDriver(base64Driver);
+            return base64Driver;
         }
     }
 
@@ -37,5 +41,17 @@ public class DefaultHttpContext implements HttpContext {
     @Override
     public void useDriver(Driver driver) {
         this.drivers.add(driver);
+    }
+
+    @Override
+    public MimeService mime() {
+        Optional<MimeService> service = getFirstDriver(MimeService.class);
+        if(service.isPresent()) {
+            return service.get();
+        } else {
+            MimeService mimeService = new DefaultMimeService();
+            useDriver(mimeService);
+            return mimeService;
+        }
     }
 }

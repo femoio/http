@@ -2,13 +2,10 @@ package io.femo.http.handlers;
 
 import io.femo.http.*;
 import io.femo.http.Http;
-import io.femo.http.drivers.server.HttpHandle;
 import io.femo.http.helper.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.input.ClassLoaderObjectInputStream;
 import org.jetbrains.annotations.Contract;
-import org.slf4j.Logger;
 
 import java.io.*;
 import java.security.DigestInputStream;
@@ -90,13 +87,13 @@ public abstract class FileHandler implements HttpHandler {
         }
     }
 
-    private static class ResourceFileHandler extends FileHandler {
+    public static class ResourceFileHandler extends FileHandler {
 
         private String resourceName;
         private byte[] buffer;
         private String etag;
 
-        private ResourceFileHandler(boolean caching, String mimeType, String resourceName) {
+        protected ResourceFileHandler(boolean caching, String mimeType, String resourceName) {
             super(caching, mimeType);
             this.resourceName = resourceName;
         }
@@ -119,7 +116,7 @@ public abstract class FileHandler implements HttpHandler {
                     MessageDigest messageDigest = MessageDigest.getInstance("MD5");
                     DigestInputStream digestInputStream = new DigestInputStream(getClass().getResourceAsStream(resourceName), messageDigest);
                     buffer = IOUtils.toByteArray(digestInputStream);
-                    etag = io.femo.http.helper.Http.context().base64().encodeToString(messageDigest.digest());
+                    etag = HttpHelper.context().base64().encodeToString(messageDigest.digest());
                 } catch (IOException | NoSuchAlgorithmException e) {
                     throw new HttpHandleException(StatusCode.INTERNAL_SERVER_ERROR, "Server is not capable to create the requested resource", e);
                 }
