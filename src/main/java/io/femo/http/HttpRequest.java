@@ -19,7 +19,6 @@ public abstract class HttpRequest {
     public abstract HttpRequest entity(byte[] entity);
     public abstract HttpRequest entity(String entity);
     public abstract HttpRequest entity(Object entity);
-    public abstract HttpRequest basicAuth(String username, String password);
     public abstract HttpRequest execute(HttpResponseCallback callback);
     public abstract HttpRequest transport(Transport transport);
     public abstract HttpRequest version(HttpVersion version);
@@ -66,6 +65,8 @@ public abstract class HttpRequest {
     public HttpRequest contentType(String contentType) {
         return header("Content-Type", contentType);
     }
+    public abstract HttpRequest basicAuth(String username, String password);
+
 
     public HttpRequest https() {
         return transport(Transport.HTTPS);

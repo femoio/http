@@ -5,6 +5,8 @@ import io.femo.http.drivers.server.HttpHandlerHandle;
 import io.femo.http.drivers.server.HttpHandlerStack;
 import io.femo.http.drivers.server.HttpMiddlewareHandle;
 import io.femo.http.drivers.server.HttpRouterHandle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static io.femo.http.HttpRoutable.joinPaths;
 
@@ -12,6 +14,8 @@ import static io.femo.http.HttpRoutable.joinPaths;
  * Created by Felix Resch on 29-Apr-16.
  */
 public class DefaultHttpRouter implements HttpRouter {
+
+    private static Logger LOGGER = LoggerFactory.getLogger("HTTP");
 
     private String parentPath;
     private HttpHandlerStack httpHandlerStack;
@@ -83,6 +87,7 @@ public class DefaultHttpRouter implements HttpRouter {
     @Override
     public HttpRouter use(String method, String path, HttpHandler httpHandler) {
         if(httpHandler instanceof HttpRouter) {
+            LOGGER.warn("Attempting to bind router with method {}. Ignoring", method.toUpperCase());
             return this;
         }
         HttpHandlerHandle handle = new HttpHandlerHandle();

@@ -1,8 +1,10 @@
 package io.femo.http;
 
 import io.femo.http.drivers.DefaultDriver;
+import io.femo.http.handlers.Authentication;
 import io.femo.http.handlers.DirectoryFileHandler;
 import io.femo.http.handlers.FileHandler;
+import io.femo.http.handlers.auth.CredentialProvider;
 import org.apache.commons.io.FileUtils;
 import org.junit.*;
 import org.junit.rules.DisableOnDebug;
@@ -36,6 +38,14 @@ public class HttpServerTest {
                     res.header("Content-Type", "text/css");
                     return true;
                 });
+        HttpRouter authRouter = Http.router()
+                .use("/basic", Http.router()
+                    .use(Authentication.basic("Basic_Authentication_Realm", username -> new CredentialProvider.Credentials("felix", "test")))
+                        .get("/", (request, response) -> {
+                            response.entity("Did it!");
+                            return true;
+                        })
+                );
         httpServer = Http.server(8080)
                 .get("/", ((request, response) -> {
                     response.entity("Did it!");
@@ -49,6 +59,7 @@ public class HttpServerTest {
                 .get("/test-file", FileHandler.buffered(new File("test.txt"), true, "text/plain"))
                 .use("/test-dir", new DirectoryFileHandler(new File("testDocs"), false, 0))
                 .use("/style", router)
+                .use("/auth", authRouter)
                 .after((request, response) -> {
                     System.out.printf("%-10s %s - %s byte(s)\n", request.method(), request.path(),
                             response.hasHeader("Content-Length") ? response.header("Content-Length").value() : " --");
@@ -124,6 +135,23 @@ public class HttpServerTest {
         assertEquals(200, response.statusCode());
         assertEquals("Hello World", response.responseString());
         assertEquals("text/plain", response.header("Content-Type").value());
+    }
+
+
+
+    @Test
+    public void testBasicAuth() throws Exception {
+        HttpResponse response = Http.get("http://localhost:8080/auth/basic/").basicAuth("felix", "test").response();
+        assertNotNull(response);
+        assertEquals(200, response.statusCode());
+        assertEquals("7", response.header("Content-Length").value());
+        assertEquals("Did it!", response.responseString());
+        assertEquals("text/plain", response.header("Content-Type").value());
+        response = Http.get("http://localhost:8080/auth/basic/").response();
+        assertNotNull(response);
+        assertEquals(401, response.statusCode());
+        assertTrue(response.hasHeader("WWW-Authenticate"));
+        assertTrue(response.header("WWW-Authenticate").value().startsWith("Basic"));
     }
 
     @AfterClass

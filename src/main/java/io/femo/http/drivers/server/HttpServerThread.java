@@ -109,31 +109,39 @@ public class HttpServerThread extends Thread {
 
         @Override
         public void run() {
-            try {
-                long start = System.currentTimeMillis();
-                HttpHelper.get().add(new HttpSocketOptions());
-                DefaultHttpResponse response = new DefaultHttpResponse();
-                HttpRequest httpRequest = HttpTransport.def().readRequest(socket.getInputStream());
-                HttpHelper.remote(socket.getRemoteSocketAddress());
-                HttpHelper.request(httpRequest);
-                HttpHelper.response(response);
-                HttpHelper.get().add(socket);
-                httpHandlerStack.handle(httpRequest, response);
-                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                response.print(byteArrayOutputStream);
-                log.debug("Writing {} bytes to {}", byteArrayOutputStream.size(), socket.getRemoteSocketAddress().toString());
-                byteArrayOutputStream.writeTo(socket.getOutputStream());
-                socket.getOutputStream().flush();
-                HttpSocketOptions httpSocketOptions = HttpHelper.get().getFirst(HttpSocketOptions.class).get();
-                if(httpSocketOptions.isClose())
-                    socket.close();
-                if(httpSocketOptions.hasHandledCallback()) {
-                    httpSocketOptions.callHandledCallback();
+            boolean run = true;
+            while (run) {
+                try {
+                    run = false;
+                    HttpHelper.get().add(new HttpSocketOptions());
+                    DefaultHttpResponse response = new DefaultHttpResponse();
+                    HttpRequest httpRequest = HttpTransport.def().readRequest(socket.getInputStream());
+                    long start = System.currentTimeMillis();
+                    HttpHelper.remote(socket.getRemoteSocketAddress());
+                    HttpHelper.request(httpRequest);
+                    HttpHelper.response(response);
+                    HttpHelper.get().add(socket);
+                    httpHandlerStack.handle(httpRequest, response);
+                    if(httpRequest.hasHeader("Connection") && !response.hasHeader("Connection") && httpRequest.header("Connection").value().equals("keep-alive")) {
+                        response.header("Connection", "keep-alive");
+                        run = true;
+                    }
+                    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                    response.print(byteArrayOutputStream);
+                    log.debug("Writing {} bytes to {}", byteArrayOutputStream.size(), socket.getRemoteSocketAddress().toString());
+                    byteArrayOutputStream.writeTo(socket.getOutputStream());
+                    socket.getOutputStream().flush();
+                    HttpSocketOptions httpSocketOptions = HttpHelper.get().getFirst(HttpSocketOptions.class).get();
+                    if(httpSocketOptions.isClose())
+                        socket.close();
+                    if(httpSocketOptions.hasHandledCallback()) {
+                        httpSocketOptions.callHandledCallback();
+                    }
+                    log.info("Took {} ms to handle request", (System.currentTimeMillis() - start));
+                    HttpHelper.get().reset();
+                } catch (IOException e) {
+                    log.warn("Socket Error", e);
                 }
-                log.info("Took {} ms to handle request", (System.currentTimeMillis() - start));
-                HttpHelper.get().reset();
-            } catch (IOException e) {
-                log.warn("Socket Error", e);
             }
         }
     }

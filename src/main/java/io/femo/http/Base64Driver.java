@@ -6,4 +6,5 @@ package io.femo.http;
 public interface Base64Driver extends Driver {
 
     String encodeToString(byte[] data);
+    byte[] decodeFromString(String data);
 }

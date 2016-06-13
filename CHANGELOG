@@ -1,3 +1,6 @@
+0.0.3
+    Added support for Connection:keep-alive for server
+    Added basic handlers for files, directories, resources and authentication (basic, digest) for server
 0.0.2
     Dropped support for Java 7, in favor of fluent API
     Added simple HTTP Server support with fluent API
