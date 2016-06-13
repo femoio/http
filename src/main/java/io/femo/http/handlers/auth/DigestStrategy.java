@@ -50,6 +50,9 @@ public class DigestStrategy implements Strategy {
         Properties properties = readData(authData);
         String user = removeQuotes(properties.getProperty("username"));
         CredentialProvider.Credentials credentials = credentialProvider.findByUsername(user);
+        if(credentials == null) {
+            return false;
+        }
         String nonce = removeQuotes(properties.getProperty("nonce"));
         String nc = properties.getProperty("nc");
         if(!nonceManager.verifyAndUpdate(nonce, nc)) {
@@ -77,13 +80,14 @@ public class DigestStrategy implements Strategy {
 
     @Override
     public String authenticateHeader() {
+        String nonce;
         return name() +
                 " realm=\"" +
                 realm +
                 "\", qop=\"auth\", nonce=\"" +
-                nonceManager.generateNew() +
+                (nonce = nonceManager.generateNew()) +
                 "\", opaque=\"" +
-                nonceManager.generateOpaque() +
+                nonceManager.getOpaque(nonce) +
                 "\"";
     }
 

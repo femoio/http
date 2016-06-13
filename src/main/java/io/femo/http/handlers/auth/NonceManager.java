@@ -6,7 +6,7 @@ package io.femo.http.handlers.auth;
 public interface NonceManager {
     String generateNew();
 
-    String generateOpaque();
+    String getOpaque(String nonce);
 
     boolean verifyAndUpdate(String nonce, String nc);
 }

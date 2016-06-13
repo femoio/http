@@ -32,4 +32,9 @@ public class Authentication implements HttpMiddleware {
     public static Authentication digest(String realm, CredentialProvider credentialProvider) {
         return new Authentication(new DigestStrategy(realm, credentialProvider, new SimpleNonceManager()));
     }
+
+    @Contract("_, _, _ -> !null")
+    public static Authentication digest(String realm, CredentialProvider credentialProvider, NonceManager nonceManager) {
+        return new Authentication(new DigestStrategy(realm, credentialProvider, nonceManager));
+    }
 }

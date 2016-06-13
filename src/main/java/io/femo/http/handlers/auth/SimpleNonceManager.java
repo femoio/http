@@ -22,7 +22,7 @@ public class SimpleNonceManager implements NonceManager {
     }
 
     @Override
-    public String generateOpaque() {
+    public String getOpaque(String nonce) {
         return UUID.randomUUID().toString();
     }
 
