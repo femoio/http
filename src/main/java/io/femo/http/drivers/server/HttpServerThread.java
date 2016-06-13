@@ -31,7 +31,7 @@ public class HttpServerThread extends Thread {
 
     private ConcurrentLinkedQueue<Future<?>> futures;
 
-    private ExecutorService executorService;
+    private static final int CONNECTION_TIMEOUT = 10000;
 
     public HttpServerThread(HttpHandlerStack httpHandlerStack) {
         this.httpHandlerStack = httpHandlerStack;
@@ -46,13 +46,13 @@ public class HttpServerThread extends Thread {
         } catch (IOException e) {
             log.error("Error while starting HTTP service", e);
         }
-        try {
+        /*try {
             this.serverSocket.setSoTimeout(20000);
         } catch (SocketException e) {
             log.warn("Could not set timeout. Shutdown may lag a bit...", e);
-        }
+        }*/
         log.debug("Starting Executor Service");
-        executorService = Executors.newCachedThreadPool(new HttpThreadFactory(port));
+        ExecutorService executorService = Executors.newCachedThreadPool(new HttpThreadFactory(port));
         while (!isInterrupted()) {
             synchronized (lock) {
                 this.ready = true;
@@ -110,6 +110,11 @@ public class HttpServerThread extends Thread {
         @Override
         public void run() {
             boolean run = true;
+            try {
+                socket.setSoTimeout(CONNECTION_TIMEOUT);
+            } catch (SocketException e) {
+                log.warn("Error while setting timeout!", e);
+            }
             while (run) {
                 try {
                     run = false;
@@ -122,7 +127,7 @@ public class HttpServerThread extends Thread {
                     HttpHelper.response(response);
                     HttpHelper.get().add(socket);
                     httpHandlerStack.handle(httpRequest, response);
-                    if(httpRequest.hasHeader("Connection") && !response.hasHeader("Connection") && httpRequest.header("Connection").value().equals("keep-alive")) {
+                    if (httpRequest.hasHeader("Connection") && !response.hasHeader("Connection") && httpRequest.header("Connection").value().equals("keep-alive")) {
                         response.header("Connection", "keep-alive");
                         run = true;
                     }
@@ -132,13 +137,20 @@ public class HttpServerThread extends Thread {
                     byteArrayOutputStream.writeTo(socket.getOutputStream());
                     socket.getOutputStream().flush();
                     HttpSocketOptions httpSocketOptions = HttpHelper.get().getFirst(HttpSocketOptions.class).get();
-                    if(httpSocketOptions.isClose())
+                    if (httpSocketOptions.isClose())
                         socket.close();
-                    if(httpSocketOptions.hasHandledCallback()) {
+                    if (httpSocketOptions.hasHandledCallback()) {
                         httpSocketOptions.callHandledCallback();
                     }
                     log.info("Took {} ms to handle request", (System.currentTimeMillis() - start));
                     HttpHelper.get().reset();
+                } catch (SocketTimeoutException e) {
+                    log.debug("Connection timed out with " + socket.getRemoteSocketAddress().toString());
+                    try {
+                        socket.close();
+                    } catch (IOException e1) {
+                        log.warn("Could not close socket", e1);
+                    }
                 } catch (IOException e) {
                     log.warn("Socket Error", e);
                 }
