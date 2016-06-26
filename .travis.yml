@@ -3,5 +3,8 @@ jdk:
   - oraclejdk8
 before_install:
   - bash install_deps.sh
+  - sleep 1
+env:
+  - HTTPBIN_HOST="localhost:3000"
 notifications:
   slack: femoio:doI2URJh5J7kPNQBzg3V8AZO
