@@ -6,4 +6,4 @@ mvn install -Dmaven.javadoc.skip=true -DskipTests=true -B -V
 cd ..
 
 pip install --user gunicorn httpbin
-gunicorn httpbin:app
+gunicorn httpbin:app > /dev/null &
