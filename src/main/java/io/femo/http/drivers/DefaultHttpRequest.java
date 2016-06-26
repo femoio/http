@@ -11,6 +11,8 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.*;
 import java.util.*;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * Created by felix on 9/11/15.
@@ -32,6 +34,8 @@ public class DefaultHttpRequest extends HttpRequest {
     private HttpTransport httpTransport;
 
     private List<Driver> drivers;
+
+    private boolean reauth = false;
 
     public DefaultHttpRequest(URL url) {
         this();
@@ -87,16 +91,8 @@ public class DefaultHttpRequest extends HttpRequest {
     }
 
     @Override
-    public HttpRequest basicAuth(String username, String password) {
-        String auth = username + ":" + password;
-        List<Base64Driver> drivers = drivers(Base64Driver.class);
-        Base64Driver driver = null;
-        if(drivers.size() == 0) {
-            driver = new DefaultBase64Driver();
-        } else {
-            driver = drivers.get(0);
-        }
-        header("Authorization", "Basic " + driver.encodeToString(auth.getBytes()));
+    public HttpRequest basicAuth(Supplier<String> username, Supplier<String> password) {
+        Authentication.basic(username, password).authenticate(this);
         return this;
     }
 
@@ -109,6 +105,7 @@ public class DefaultHttpRequest extends HttpRequest {
             print(socket.getOutputStream());
             manager.raise(new HttpSentEvent(this));
             response = httpTransport.readResponse(socket.getInputStream(), pipe);
+            response.request(this);
             manager.raise(new HttpReceivedEvent(this, response));
             socket.close();
         } catch (IOException e) {
@@ -135,6 +132,25 @@ public class DefaultHttpRequest extends HttpRequest {
                 execute(callback);
             } catch (MalformedURLException e) {
                 throw new HttpException(this, e);
+            }
+        } else if (!reauth && response.status().status() == StatusCode.UNAUTHORIZED.status()) {
+            reauth = true;
+            List<Authentication> authentications = drivers(Authentication.class);
+            authentications = authentications.stream().filter(a -> a.supports(response)).collect(Collectors.toList());
+            if(authentications.size() > 0) {
+                Authentication authentication = authentications.get(0);
+                if(authentication.isInitialized() && authentication.matches(this)) {
+                    authentication.authenticate(this);
+                    execute(callback);
+                } else if (!authentication.isInitialized()) {
+                    authentication.init(response);
+                    authentication.authenticate(this);
+                    execute(callback);
+                } else if (authentication.supportsMulti()) {
+                    authentication.init(response);
+                    authentication.authenticate(this);
+                    execute(callback);
+                }
             }
         }
         return this;

@@ -91,4 +91,8 @@ public class HttpHandlerStack {
     public void parentPath(String path) {
         httpHandlerHandles.forEach(httpHandle -> httpHandle.parentPath(path));
     }
+
+    public void prependPath(String parentPath) {
+        httpHandlerHandles.forEach(httpHandle -> httpHandle.prependPath(parentPath));
+    }
 }

@@ -27,7 +27,16 @@ public class HttpRouterHandle implements HttpHandle {
         httpRouter.parentPath(path);
     }
 
+    @Override
+    public void prependPath(String path) {
+        this.httpRouter.prependPath(path);
+    }
+
     public void setRouter(HttpRouter httpRouter) {
         this.httpRouter = httpRouter;
+    }
+
+    public HttpRouter router() {
+        return this.httpRouter;
     }
 }

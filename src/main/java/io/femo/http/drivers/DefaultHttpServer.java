@@ -127,6 +127,11 @@ public class DefaultHttpServer implements HttpServer {
     }
 
     @Override
+    public HttpRoutable<HttpServer> prependPath(String path) {
+        return this;
+    }
+
+    @Override
     public boolean ready() {
         return this.serverThread.ready();
     }

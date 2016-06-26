@@ -1,9 +1,11 @@
 package io.femo.http;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Created by felix on 9/10/15.
  */
-public class HttpHeader {
+public class HttpHeader implements CharSequence {
 
     private String name;
     private String value;
@@ -47,6 +49,22 @@ public class HttpHeader {
         return false;
     }
 
+    @Override
+    public int length() {
+        return value.length();
+    }
+
+    @Override
+    public char charAt(int i) {
+        return value.charAt(i);
+    }
+
+    @Override
+    public CharSequence subSequence(int i, int i1) {
+        return value.subSequence(i, i1);
+    }
+
+    @NotNull
     public String toString() {
         return value();
     }

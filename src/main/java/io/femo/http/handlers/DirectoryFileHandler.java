@@ -92,6 +92,12 @@ public class DirectoryFileHandler implements HttpRouter {
     }
 
     @Override
+    public HttpRoutable<HttpRouter> prependPath(String path) {
+        this.parentPath = HttpRoutable.joinPaths(path, this.parentPath);
+        return this;
+    }
+
+    @Override
     public HttpRouter parentPath(String path) {
         this.parentPath = path;
         if(this.parentPath.endsWith("/")) {

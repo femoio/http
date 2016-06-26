@@ -63,4 +63,9 @@ public class HttpHandlerHandle implements HttpHandle {
         if(this.path != null)
             this.path = joinPaths(path, this.path);
     }
+
+    @Override
+    public void prependPath(String path) {
+        this.path = joinPaths(path, this.path);
+    }
 }

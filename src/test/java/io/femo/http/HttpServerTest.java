@@ -45,7 +45,13 @@ public class HttpServerTest {
                             response.entity("Did it!");
                             return true;
                         })
-                );
+                ).use("/digest", Http.router()
+                        .use(Authentication.digest("Digest_Authentication_Realm", username -> new CredentialProvider.Credentials("felix", "test")))
+                        .get("/", (request, response) ->  {
+                            response.entity("Did it!");
+                            return true;
+                        })
+                    );
         httpServer = Http.server(8080)
                 .get("/", ((request, response) -> {
                     response.entity("Did it!");
@@ -154,9 +160,25 @@ public class HttpServerTest {
         assertTrue(response.header("WWW-Authenticate").value().startsWith("Basic"));
     }
 
+    @Test
+    public void testDigestAuth() throws Exception {
+        HttpResponse response = Http.get("http://localhost:8080/auth/digest/").using(io.femo.http.Authentication.digest("felix", "test")).response();
+        assertNotNull(response);
+        assertEquals(200, response.statusCode());
+        assertEquals("7", response.header("Content-Length").value());
+        assertEquals("Did it!", response.responseString());
+        assertEquals("text/plain", response.header("Content-Type").value());
+        response = Http.get("http://localhost:8080/auth/digest/").response();
+        assertNotNull(response);
+        assertEquals(401, response.statusCode());
+        assertTrue(response.hasHeader("WWW-Authenticate"));
+        assertTrue(response.header("WWW-Authenticate").value().startsWith("Digest"));
+    }
+
     @AfterClass
     public static void tearDown() throws Exception {
         httpServer.stop();
         new File("test.txt").deleteOnExit();
+        FileUtils.deleteDirectory(new File("testDocs"));
     }
 }

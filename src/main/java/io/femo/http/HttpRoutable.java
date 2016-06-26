@@ -68,6 +68,8 @@ public interface HttpRoutable<T extends HttpRoutable> {
 
     boolean matches(HttpRequest httpRequest);
 
+    HttpRoutable<T> prependPath(String path);
+
     @NotNull
     static String joinPaths(String path1, String path2) {
         if(path1 == null) {

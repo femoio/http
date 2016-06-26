@@ -27,7 +27,7 @@ public class DefaultHttpRouter implements HttpRouter {
     @Override
     public HttpRouter parentPath(String path) {
         this.parentPath = path;
-        httpHandlerStack.parentPath(path);
+        httpHandlerStack.prependPath(path);
         return this;
     }
 
@@ -72,7 +72,10 @@ public class DefaultHttpRouter implements HttpRouter {
     public HttpRouter use(String path, HttpHandler httpHandler) {
         if(httpHandler instanceof HttpRouter) {
             HttpRouterHandle handle = new HttpRouterHandle();
-            ((HttpRouter) httpHandler).parentPath(joinPaths(parentPath, path));
+            ((HttpRouter) httpHandler).parentPath(path);
+            if(this.parentPath != null) {
+                ((HttpRouter) httpHandler).prependPath(parentPath);
+            }
             handle.setRouter((HttpRouter) httpHandler);
             httpHandlerStack.submit(handle);
         } else {
@@ -106,6 +109,13 @@ public class DefaultHttpRouter implements HttpRouter {
 
     @Override
     public boolean matches(HttpRequest httpRequest) {
-        return httpHandlerStack.matches(httpRequest);
+        return httpRequest.path().startsWith(this.parentPath) && httpHandlerStack.matches(httpRequest);
+    }
+
+    @Override
+    public HttpRoutable<HttpRouter> prependPath(String path) {
+        this.parentPath = joinPaths(path, this.parentPath);
+        this.httpHandlerStack.prependPath(path);
+        return this;
     }
 }

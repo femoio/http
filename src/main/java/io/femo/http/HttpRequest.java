@@ -7,6 +7,8 @@ import io.femo.http.events.HttpEventType;
 import java.io.OutputStream;
 import java.net.URL;
 import java.util.Collection;
+import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * Created by felix on 9/10/15.
@@ -65,8 +67,12 @@ public abstract class HttpRequest {
     public HttpRequest contentType(String contentType) {
         return header("Content-Type", contentType);
     }
-    public abstract HttpRequest basicAuth(String username, String password);
+    public abstract HttpRequest basicAuth(Supplier<String> username, Supplier<String> password);
+    public HttpRequest basicAuth(String username, String password) {
+        return basicAuth(() -> username, () -> password);
+    }
 
+    public abstract <T extends Driver> List<T> drivers(Class<T> type);
 
     public HttpRequest https() {
         return transport(Transport.HTTPS);

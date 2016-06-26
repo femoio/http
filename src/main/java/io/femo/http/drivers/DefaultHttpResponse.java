@@ -16,8 +16,6 @@ import java.util.Map;
  */
 public class DefaultHttpResponse extends HttpResponse {
 
-
-
     private StatusCode statusCode;
     private Map<String, HttpHeader> headers;
     private Map<String, HttpCookie> cookies;
@@ -25,6 +23,7 @@ public class DefaultHttpResponse extends HttpResponse {
     private HttpTransport httpTransport;
 
     private InputStream entityStream;
+    private HttpRequest request;
 
     public DefaultHttpResponse() {
         this.headers = new HashMap<>();
@@ -127,6 +126,16 @@ public class DefaultHttpResponse extends HttpResponse {
     @Override
     public byte[] responseBytes() {
         return entity;
+    }
+
+    @Override
+    public void request(HttpRequest request) {
+        this.request = request;
+    }
+
+    @Override
+    public HttpRequest request() {
+        return this.request;
     }
 
     @Override
