@@ -5,5 +5,5 @@ cd dynamic
 mvn install -Dmaven.javadoc.skip=true -DskipTests=true -B -V
 cd ..
 
-pip install gunicorn httpbin
+pip install --user gunicorn httpbin
 gunicorn httpbin:app
