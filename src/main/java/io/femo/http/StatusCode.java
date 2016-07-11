@@ -1,5 +1,7 @@
 package io.femo.http;
 
+import org.jetbrains.annotations.Contract;
+
 import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.TreeMap;
@@ -375,6 +377,7 @@ public final class StatusCode {
         this.statusMessage = statusMessage;
     }
 
+    @Contract(pure = true)
     public int status() {
         return status;
     }
@@ -383,6 +386,7 @@ public final class StatusCode {
         this.status = status;
     }
 
+    @Contract(pure = true)
     public String statusMessage() {
         return statusMessage;
     }
@@ -391,6 +395,7 @@ public final class StatusCode {
         this.statusMessage = statusMessage;
     }
 
+    @Contract(pure = true)
     @Override
     public String toString() {
         return "StatusCode[" + status +
@@ -425,6 +430,17 @@ public final class StatusCode {
         return new StatusCode(Integer.parseInt(statusCode), statusMessage);
     }
 
+    public static void register(StatusCode statusCode) {
+        if(!index.containsKey(statusCode.status())) {
+            index.put(statusCode.status(), statusCode);
+        }
+    }
+
+    public static void register(int code, String statusMessage) {
+        register(new StatusCode(code, statusMessage));
+    }
+
+    @Contract(value = "null -> false", pure = true)
     @Override
     public boolean equals(Object o) {
         return o instanceof StatusCode && ((StatusCode)o).status == status;

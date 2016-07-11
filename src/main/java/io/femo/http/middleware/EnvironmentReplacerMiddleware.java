@@ -1,9 +1,7 @@
 package io.femo.http.middleware;
 
-import io.femo.http.HttpHandleException;
-import io.femo.http.HttpMiddleware;
-import io.femo.http.HttpRequest;
-import io.femo.http.HttpResponse;
+import io.femo.http.*;
+import io.femo.http.helper.HttpHelper;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,13 +26,17 @@ public class EnvironmentReplacerMiddleware implements HttpMiddleware {
 
     @Override
     public void handle(HttpRequest request, HttpResponse response) throws HttpHandleException {
-        if(response.hasHeader("Content-Type") && response.header("Content-Type").equals("text/html")) {
+        if(response.hasHeader("Content-Type") && response.header("Content-Type").equals("text/html") ||
+                response.hasHeader("X-Replace-Env") && response.header("X-Replace-Env").equals("true")) {
             String val;
             Matcher matcher = replace.matcher(val = response.responseString());
+            Environment environment = HttpHelper.context().environment();
             while (matcher.find()) {
                 String key = matcher.group(1);
                 if(replacers.containsKey(key)) {
                     matcher.reset(val = matcher.replaceFirst(replacers.get(key).get(request, response)));
+                } else if (environment.has(key)) {
+                    matcher.reset(val = matcher.replaceFirst(environment.get(key).get(request, response)));
                 }
             }
             response.entity(val);

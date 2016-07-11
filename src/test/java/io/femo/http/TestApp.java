@@ -1,6 +1,7 @@
 package io.femo.http;
 
 import io.femo.http.handlers.Authentication;
+import io.femo.http.handlers.Handlers;
 import io.femo.http.handlers.auth.CredentialProvider;
 
 /**
@@ -12,8 +13,12 @@ public class TestApp {
         Http.server(8080)
                 .use(Authentication.digest("test", (uname) -> uname.equals("felix") ? new CredentialProvider.Credentials("felix", "test") : null))
                 .get("/", (request, response) -> {
-                    response.entity("Hello World");
+                    response.entity("Hello World ${{time}}");
+                    response.header("X-Replace-Env", "true");
                     return true;
-                }).start();
+                })
+                .after(Handlers.environment())
+                .after(Handlers.log())
+                .start();
     }
 }

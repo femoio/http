@@ -2,18 +2,12 @@ package io.femo.http.drivers;
 
 import eu.medsea.mimeutil.MimeType;
 import eu.medsea.mimeutil.MimeUtil;
-import eu.medsea.mimeutil.MimeUtil2;
-import eu.medsea.mimeutil.TextMimeDetector;
 import eu.medsea.mimeutil.detector.ExtensionMimeDetector;
 import eu.medsea.mimeutil.detector.MagicMimeMimeDetector;
 import eu.medsea.mimeutil.detector.MimeDetector;
 import io.femo.http.MimeService;
 import org.jetbrains.annotations.Contract;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
-import java.util.Collection;
 
 /**
  * Created by felix on 6/11/16.
