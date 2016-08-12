@@ -14,4 +14,6 @@ public interface HttpHandle {
     boolean handle(HttpRequest request, HttpResponse response) throws HttpHandleException;
 
     void parentPath(String path);
+
+    void prependPath(String path);
 }

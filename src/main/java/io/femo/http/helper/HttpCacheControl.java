@@ -27,7 +27,7 @@ public final class HttpCacheControl {
      * @return whether the server can respond with a 302 - Not Modified
      */
     public static boolean cacheControl(int maxAge, String eTag) {
-        return cacheControl(Http.request(), Http.response(), maxAge, eTag);
+        return cacheControl(HttpHelper.request(), HttpHelper.response(), maxAge, eTag);
     }
 
     /**
@@ -72,7 +72,7 @@ public final class HttpCacheControl {
         response.header("Cache-Control", "max-age=" + maxAge);
         response.header("ETag", eTag);
         if(request.hasHeader("If-None-Match")) {
-            if(request.header("If-None-Match").value().equals(eTag)) {
+            if(request.header("If-None-Match").equals(eTag)) {
                 response.status(StatusCode.NOT_MODIFIED);
                 return true;
             }

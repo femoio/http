@@ -1,8 +1,6 @@
 package io.femo.http.drivers;
 
-import io.femo.http.HttpException;
-import io.femo.http.HttpRequest;
-import io.femo.http.HttpResponseCallback;
+import io.femo.http.*;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -30,12 +28,12 @@ public class AsynchronousHttpRequest extends DefaultHttpRequest {
             @Override
             public void run() {
                 int port = url.getPort() == -1 ? url.getDefaultPort() : url.getPort();
-                DefaultHttpResponse response = null;
+                HttpResponse response = null;
                 try {
                     Socket socket = transport().openSocket(url.getHost(), port);
                     PrintStream printStream = new PrintStream(socket.getOutputStream());
                     print(printStream);
-                    response = DefaultHttpResponse.read(socket.getInputStream(), null);
+                    response = HttpTransport.def().readResponse(socket.getInputStream(), null);
                 } catch (IOException e) {
                     throw new HttpException(AsynchronousHttpRequest.this, e);
                 }

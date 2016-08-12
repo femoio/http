@@ -4,9 +4,11 @@ import io.femo.http.events.HttpEventHandler;
 import io.femo.http.events.HttpEventManager;
 import io.femo.http.events.HttpEventType;
 
-import java.io.IOException;
 import java.io.OutputStream;
-import java.io.PrintStream;
+import java.net.URL;
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * Created by felix on 9/10/15.
@@ -19,11 +21,10 @@ public abstract class HttpRequest {
     public abstract HttpRequest entity(byte[] entity);
     public abstract HttpRequest entity(String entity);
     public abstract HttpRequest entity(Object entity);
-    public abstract HttpRequest basicAuth(String username, String password);
     public abstract HttpRequest execute(HttpResponseCallback callback);
     public abstract HttpRequest transport(Transport transport);
     public abstract HttpRequest version(HttpVersion version);
-    public abstract HttpRequest print(PrintStream printStream);
+    public abstract HttpRequest print(OutputStream outputStream);
     public abstract HttpRequest data(String key, String value);
     public abstract HttpRequest eventManager(HttpEventManager manager);
     public abstract HttpRequest event(HttpEventType type, HttpEventHandler handler);
@@ -32,13 +33,16 @@ public abstract class HttpRequest {
 
     public abstract HttpRequest pipe(OutputStream outputStream);
 
+    public abstract HttpRequest prepareEntity();
+
     public abstract String method();
-    public abstract HttpCookie[] cookies();
-    public abstract HttpHeader[] headers();
+    public abstract Collection<HttpCookie> cookies();
+    public abstract Collection<HttpHeader> headers();
     public abstract byte[] entityBytes();
     public abstract String entityString();
     public abstract boolean checkAuth(String username, String password);
     public abstract HttpResponse response();
+    public abstract HttpRequest use(HttpTransport httpTransport);
 
     public abstract Transport transport();
     public abstract String requestLine();
@@ -63,10 +67,18 @@ public abstract class HttpRequest {
     public HttpRequest contentType(String contentType) {
         return header("Content-Type", contentType);
     }
+    public abstract HttpRequest basicAuth(Supplier<String> username, Supplier<String> password);
+    public HttpRequest basicAuth(String username, String password) {
+        return basicAuth(() -> username, () -> password);
+    }
+
+    public abstract <T extends Driver> List<T> drivers(Class<T> type);
 
     public HttpRequest https() {
         return transport(Transport.HTTPS);
     }
 
     public abstract String path();
+
+    public abstract URL url();
 }

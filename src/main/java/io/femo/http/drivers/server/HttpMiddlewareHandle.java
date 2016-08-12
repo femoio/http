@@ -33,6 +33,11 @@ public class HttpMiddlewareHandle implements HttpHandle {
             this.path = joinPaths(path, this.path);
     }
 
+    @Override
+    public void prependPath(String path) {
+        this.path = joinPaths(path, this.path);
+    }
+
     public String getPath() {
         return path;
     }

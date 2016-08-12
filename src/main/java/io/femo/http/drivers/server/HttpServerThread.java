@@ -1,9 +1,9 @@
 package io.femo.http.drivers.server;
 
 import io.femo.http.HttpRequest;
+import io.femo.http.HttpTransport;
 import io.femo.http.drivers.DefaultHttpResponse;
-import io.femo.http.drivers.IncomingHttpRequest;
-import io.femo.http.helper.Http;
+import io.femo.http.helper.HttpHelper;
 import io.femo.http.helper.HttpSocketOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +31,7 @@ public class HttpServerThread extends Thread {
 
     private ConcurrentLinkedQueue<Future<?>> futures;
 
-    private ExecutorService executorService;
+    private static final int CONNECTION_TIMEOUT = 10000;
 
     public HttpServerThread(HttpHandlerStack httpHandlerStack) {
         this.httpHandlerStack = httpHandlerStack;
@@ -46,13 +46,13 @@ public class HttpServerThread extends Thread {
         } catch (IOException e) {
             log.error("Error while starting HTTP service", e);
         }
-        try {
+        /*try {
             this.serverSocket.setSoTimeout(20000);
         } catch (SocketException e) {
             log.warn("Could not set timeout. Shutdown may lag a bit...", e);
-        }
+        }*/
         log.debug("Starting Executor Service");
-        executorService = Executors.newCachedThreadPool(new HttpThreadFactory(port));
+        ExecutorService executorService = Executors.newCachedThreadPool(new HttpThreadFactory(port));
         while (!isInterrupted()) {
             synchronized (lock) {
                 this.ready = true;
@@ -109,28 +109,51 @@ public class HttpServerThread extends Thread {
 
         @Override
         public void run() {
+            boolean run = true;
             try {
-                long start = System.currentTimeMillis();
-                HttpSocketOptions httpSocketOptions = new HttpSocketOptions();
-                Http.get().add(httpSocketOptions);
-                DefaultHttpResponse response = new DefaultHttpResponse();
-                HttpRequest httpRequest = IncomingHttpRequest.readFromStream(socket.getInputStream());
-                Http.remote(socket.getRemoteSocketAddress());
-                Http.request(httpRequest);
-                Http.response(response);
-                Http.get().add(socket);
-                httpHandlerStack.handle(httpRequest, response);
-                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                response.print(byteArrayOutputStream);
-                log.debug("Writing {} bytes to {}", byteArrayOutputStream.size(), socket.getRemoteSocketAddress().toString());
-                byteArrayOutputStream.writeTo(socket.getOutputStream());
-                socket.getOutputStream().flush();
-                if(httpSocketOptions.isClose())
-                    socket.close();
-                log.info("Took {} ms to handle request", (System.currentTimeMillis() - start));
-                Http.get().reset();
-            } catch (IOException e) {
-                log.warn("Socket Error", e);
+                socket.setSoTimeout(CONNECTION_TIMEOUT);
+            } catch (SocketException e) {
+                log.warn("Error while setting timeout!", e);
+            }
+            while (run) {
+                try {
+                    run = false;
+                    HttpHelper.get().add(new HttpSocketOptions());
+                    DefaultHttpResponse response = new DefaultHttpResponse();
+                    HttpRequest httpRequest = HttpTransport.def().readRequest(socket.getInputStream());
+                    long start = System.currentTimeMillis();
+                    HttpHelper.remote(socket.getRemoteSocketAddress());
+                    HttpHelper.request(httpRequest);
+                    HttpHelper.response(response);
+                    HttpHelper.get().add(socket);
+                    httpHandlerStack.handle(httpRequest, response);
+                    if (httpRequest.hasHeader("Connection") && !response.hasHeader("Connection") && httpRequest.header("Connection").value().equals("keep-alive")) {
+                        response.header("Connection", "keep-alive");
+                        run = true;
+                    }
+                    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                    response.print(byteArrayOutputStream);
+                    log.debug("Writing {} bytes to {}", byteArrayOutputStream.size(), socket.getRemoteSocketAddress().toString());
+                    byteArrayOutputStream.writeTo(socket.getOutputStream());
+                    socket.getOutputStream().flush();
+                    HttpSocketOptions httpSocketOptions = HttpHelper.get().getFirst(HttpSocketOptions.class).get();
+                    if (httpSocketOptions.isClose())
+                        socket.close();
+                    if (httpSocketOptions.hasHandledCallback()) {
+                        httpSocketOptions.callHandledCallback();
+                    }
+                    log.info("Took {} ms to handle request", (System.currentTimeMillis() - start));
+                    HttpHelper.get().reset();
+                } catch (SocketTimeoutException e) {
+                    log.debug("Connection timed out with " + socket.getRemoteSocketAddress().toString());
+                    try {
+                        socket.close();
+                    } catch (IOException e1) {
+                        log.warn("Could not close socket", e1);
+                    }
+                } catch (IOException e) {
+                    log.warn("Socket Error", e);
+                }
             }
         }
     }

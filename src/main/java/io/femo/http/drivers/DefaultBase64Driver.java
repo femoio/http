@@ -12,4 +12,9 @@ public class DefaultBase64Driver implements Base64Driver {
     public String encodeToString(byte[] data) {
         return DatatypeConverter.printBase64Binary(data);
     }
+
+    @Override
+    public byte[] decodeFromString(String data) {
+        return DatatypeConverter.parseBase64Binary(data);
+    }
 }

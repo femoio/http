@@ -1,21 +1,18 @@
 package io.femo.http.drivers;
 
 import io.femo.http.*;
+import io.femo.http.HttpCookie;
 import io.femo.http.events.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.Socket;
-import java.net.URL;
-import java.net.URLEncoder;
+import java.net.*;
 import java.util.*;
-import java.util.concurrent.TimeoutException;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * Created by felix on 9/11/15.
@@ -34,8 +31,11 @@ public class DefaultHttpRequest extends HttpRequest {
     private Transport transport = Transport.HTTP;
     protected HttpEventManager manager;
     private OutputStream pipe;
+    private HttpTransport httpTransport;
 
     private List<Driver> drivers;
+
+    private boolean reauth = false;
 
     public DefaultHttpRequest(URL url) {
         this();
@@ -91,29 +91,21 @@ public class DefaultHttpRequest extends HttpRequest {
     }
 
     @Override
-    public HttpRequest basicAuth(String username, String password) {
-        String auth = username + ":" + password;
-        List<Base64Driver> drivers = drivers(Base64Driver.class);
-        Base64Driver driver = null;
-        if(drivers.size() == 0) {
-            driver = new DefaultBase64Driver();
-        } else {
-            driver = drivers.get(0);
-        }
-        header("Authorization", "Basic " + driver.encodeToString(auth.getBytes()));
+    public HttpRequest basicAuth(Supplier<String> username, Supplier<String> password) {
+        Authentication.basic(username, password).authenticate(this);
         return this;
     }
 
     @Override
     public HttpRequest execute(HttpResponseCallback callback) {
         int port = url.getPort() == -1 ? url.getDefaultPort() : url.getPort();
-        DefaultHttpResponse response;
+        HttpResponse response;
         try {
             Socket socket = transport.openSocket(url.getHost(), port);
-            PrintStream output = new PrintStream(socket.getOutputStream());
-            print(output);
+            print(socket.getOutputStream());
             manager.raise(new HttpSentEvent(this));
-            response = DefaultHttpResponse.read(socket.getInputStream(), pipe);
+            response = httpTransport.readResponse(socket.getInputStream(), pipe);
+            response.request(this);
             manager.raise(new HttpReceivedEvent(this, response));
             socket.close();
         } catch (IOException e) {
@@ -141,6 +133,25 @@ public class DefaultHttpRequest extends HttpRequest {
             } catch (MalformedURLException e) {
                 throw new HttpException(this, e);
             }
+        } else if (!reauth && response.status().status() == StatusCode.UNAUTHORIZED.status()) {
+            reauth = true;
+            List<Authentication> authentications = drivers(Authentication.class);
+            authentications = authentications.stream().filter(a -> a.supports(response)).collect(Collectors.toList());
+            if(authentications.size() > 0) {
+                Authentication authentication = authentications.get(0);
+                if(authentication.isInitialized() && authentication.matches(this)) {
+                    authentication.authenticate(this);
+                    execute(callback);
+                } else if (!authentication.isInitialized()) {
+                    authentication.init(response);
+                    authentication.authenticate(this);
+                    execute(callback);
+                } else if (authentication.supportsMulti()) {
+                    authentication.init(response);
+                    authentication.authenticate(this);
+                    execute(callback);
+                }
+            }
         }
         return this;
     }
@@ -157,40 +168,11 @@ public class DefaultHttpRequest extends HttpRequest {
     }
 
     @Override
-    public HttpRequest print(PrintStream output) {
-        if(data != null) {
-            if(isHeader("Content-Type")) {
-                String contentType = headers.get("Content-Type").value();
-                if(contentType.equals("application/x-www-form-urlencoded")) {
-                    writeUrlFormEncoded();
-                }
-            } else {
-                header("Content-Type", "application/x-www-form-urlencoded");
-                writeUrlFormEncoded();
-            }
+    public HttpRequest print(OutputStream output) {
+        if(httpTransport == null) {
+            httpTransport = HttpTransport.version11();
         }
-        output.printf("%s %s %s\r\n", method.toUpperCase(), url.getPath() + (url.getQuery() != null ? "?" + url.getQuery() : ""), "HTTP/1.1");
-        for (HttpHeader header : headers.values()) {
-            output.printf("%s: %s\r\n", header.name(), header.value());
-        }
-        if(cookies.size() > 0) {
-            StringBuilder builder = new StringBuilder();
-            for (HttpCookie cookie : cookies.values()) {
-                builder.append(cookie.name());
-                builder.append("=");
-                builder.append(cookie.value());
-                builder.append(";");
-            }
-            output.printf("%s: %s\r\n", "Cookie", builder.toString());
-            output.print("\r\n");
-        }
-        if(entity != null) {
-            output.print("\r\n");
-            output.write(entity, 0, entity.length);
-            output.print("\r\n");
-        }
-        output.print("\r\n");
-        output.print("\r\n");
+        httpTransport.write(this, output);
         return this;
     }
 
@@ -245,6 +227,22 @@ public class DefaultHttpRequest extends HttpRequest {
         return this;
     }
 
+    @Override
+    public HttpRequest prepareEntity() {
+        if(data != null) {
+            if(hasHeader("Content-Type")) {
+                String contentType = header("Content-Type").value();
+                if(contentType.equals("application/x-www-form-urlencoded")) {
+                    writeUrlFormEncoded();
+                }
+            } else {
+                header("Content-Type", "application/x-www-form-urlencoded");
+                writeUrlFormEncoded();
+            }
+        }
+        return this;
+    }
+
     public <T extends Driver> List<T> drivers(Class<T> type) {
         ArrayList<T> drivers = new ArrayList<>();
         for(Driver driver : this.drivers) {
@@ -260,13 +258,13 @@ public class DefaultHttpRequest extends HttpRequest {
     }
 
     @Override
-    public HttpCookie[] cookies() {
-        return new HttpCookie[0];
+    public Collection<HttpCookie> cookies() {
+        return cookies.values();
     }
 
     @Override
-    public HttpHeader[] headers() {
-        return new HttpHeader[0];
+    public Collection<HttpHeader> headers() {
+        return headers.values();
     }
 
     public boolean isHeader(String name) {
@@ -293,6 +291,12 @@ public class DefaultHttpRequest extends HttpRequest {
         if(response == null)
                 execute();
         return response;
+    }
+
+    @Override
+    public HttpRequest use(HttpTransport httpTransport) {
+        this.httpTransport = httpTransport;
+        return this;
     }
 
     @Override

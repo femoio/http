@@ -110,6 +110,14 @@ public class HttpTest {
     }
 
     @Test
+    @Ignore("httpbin does not support digest authentication with the implemented approach")
+    public void testDigestAuthentication() throws Exception {
+        HttpResponse response = Http.get("http://" + TestConstants.HTTP.HOST + "/digest-auth/auth/test/test").using(Authentication.digest("test", "test")).response();
+        assertNotNull(response);
+        assertEquals("Status", 200, response.statusCode());
+    }
+
+    @Test
     public void testEvents() throws Exception {
         Http.get("http://" + TestConstants.HTTP.HOST + "/get").event(HttpEventType.ALL, new HttpEventHandler() {
             @Override

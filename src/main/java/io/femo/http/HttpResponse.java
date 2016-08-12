@@ -23,6 +23,9 @@ public abstract class HttpResponse {
     public abstract String responseString();
     public abstract byte[] responseBytes();
 
+    public abstract void request(HttpRequest request);
+    public abstract HttpRequest request();
+
     public abstract HttpHeader header(String name);
     public abstract boolean hasHeader(String name);
     public abstract HttpResponse header(String name, String value);
@@ -39,4 +42,5 @@ public abstract class HttpResponse {
     public abstract void print(OutputStream outputStream);
     public abstract String statusLine();
 
+    public abstract Collection<HttpHeader> headers();
 }

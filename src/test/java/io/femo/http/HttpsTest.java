@@ -22,7 +22,7 @@ public class HttpsTest {
     private static JsonParser parser;
 
     @Rule
-    public TestRule timeout = new DisableOnDebug(new Timeout(20, TimeUnit.SECONDS));
+    public TestRule timeout = new DisableOnDebug(new Timeout(30, TimeUnit.SECONDS));
 
     @BeforeClass
     public static void setUp() throws Exception {

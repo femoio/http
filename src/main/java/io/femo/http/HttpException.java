@@ -11,6 +11,12 @@ public class HttpException extends RuntimeException {
 
     public HttpException(HttpRequest request, Exception cause) {
         super(cause);
+        this.request = request;
+    }
+
+    public HttpException(HttpRequest request, String message) {
+        super(message);
+        this.request = request;
     }
 
     @Override

@@ -2,6 +2,8 @@ package io.femo.http.drivers;
 
 import io.femo.http.*;
 import io.femo.http.drivers.server.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -15,6 +17,8 @@ import static io.femo.http.HttpRoutable.joinPaths;
  * Created by felix on 2/24/16.
  */
 public class DefaultHttpServer implements HttpServer {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger("HTTP");
 
     private int port;
     private boolean ssl;
@@ -40,6 +44,7 @@ public class DefaultHttpServer implements HttpServer {
         this.serverThread = new HttpServerThread(httpHandlerStack);
         serverThread.setPort(port);
         serverThread.start();
+        LOGGER.info("Started HTTP Server on port {}", port);
         return this;
     }
 
@@ -83,7 +88,7 @@ public class DefaultHttpServer implements HttpServer {
 
     @Override
     public HttpServer use(String path, HttpHandler httpHandler) {
-        if(httpHandler instanceof HttpRouter) {
+        if(httpHandler instanceof HttpRoutable) {
             HttpRouterHandle handle = new HttpRouterHandle();
             ((HttpRouter) httpHandler).parentPath(joinPaths("/", path));
             handle.setRouter((HttpRouter) httpHandler);
@@ -119,6 +124,11 @@ public class DefaultHttpServer implements HttpServer {
     @Override
     public boolean matches(HttpRequest httpRequest) {
         return httpHandlerStack.matches(httpRequest);
+    }
+
+    @Override
+    public HttpRoutable<HttpServer> prependPath(String path) {
+        return this;
     }
 
     @Override
