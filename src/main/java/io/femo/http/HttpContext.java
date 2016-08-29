@@ -10,4 +10,6 @@ public interface HttpContext {
     void useDriver(Driver driver);
 
     MimeService mime();
+
+    Environment environment();
 }

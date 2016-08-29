@@ -1,6 +1,6 @@
 # FeMo.IO HTTP Library
 
-As of version *0.0.2* support for *Java 7* has been dropped.
+As of version *0.0.2* support for *Java 7* has been dropped. For use with *Java 7* compatible systems use [http-jdk7](https://github.com/femoio/http-jdk7).
 
 [![Build Status](https://travis-ci.org/femoio/http.svg?branch=master)](https://travis-ci.org/femoio/http)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.femo/http/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.femo/http)
@@ -8,7 +8,7 @@ As of version *0.0.2* support for *Java 7* has been dropped.
         <dependency>
             <groupId>io.femo</groupId>
             <artifactId>http</artifactId>
-            <version>0.0.1</version>
+            <version>0.0.2</version>
         </dependency>
 
 This library provides a simple API for developers to perform synchronous and asynchronous HTTP Requests.

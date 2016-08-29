@@ -2,6 +2,7 @@ package io.femo.http.handlers;
 
 import io.femo.http.HttpHandler;
 import io.femo.http.HttpMiddleware;
+import io.femo.http.middleware.EnvironmentReplacerMiddleware;
 import org.jetbrains.annotations.Contract;
 
 import java.io.File;
@@ -35,5 +36,10 @@ public final class Handlers {
     @Contract(" -> !null")
     public static HttpMiddleware log() {
         return LoggingHandler.log();
+    }
+
+    @Contract(" -> !null")
+    public static HttpMiddleware environment() {
+        return new EnvironmentReplacerMiddleware();
     }
 }

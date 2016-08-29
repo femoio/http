@@ -1,10 +1,8 @@
 package io.femo.http.helper;
 
-import io.femo.http.Base64Driver;
-import io.femo.http.Driver;
-import io.femo.http.HttpContext;
-import io.femo.http.MimeService;
+import io.femo.http.*;
 import io.femo.http.drivers.DefaultBase64Driver;
+import io.femo.http.drivers.DefaultEnvironment;
 import io.femo.http.drivers.DefaultMimeService;
 
 import java.util.ArrayList;
@@ -52,6 +50,18 @@ public class DefaultHttpContext implements HttpContext {
             MimeService mimeService = new DefaultMimeService();
             useDriver(mimeService);
             return mimeService;
+        }
+    }
+
+    @Override
+    public Environment environment() {
+        Optional<Environment> driver = getFirstDriver(Environment.class);
+        if(driver.isPresent()) {
+            return driver.get();
+        } else {
+            Environment environment = new DefaultEnvironment();
+            useDriver(environment);
+            return environment;
         }
     }
 }
